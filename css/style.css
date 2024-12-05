@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Open+Sans:wght@300;400;600;700&display=swap");
+
 body {
   font-family: "Open Sans", sans-serif;
   color: #0c0c0c;
@@ -83,7 +84,7 @@ a:focus {
           box-shadow: none;
 }
 
-/*header section*/
+/* Header Section */
 .hero_area {
   position: relative;
   min-height: 100vh;
@@ -167,7 +168,8 @@ a:focus {
   transition: all 0.3s;
 }
 
-.custom_nav-container .navbar-nav .nav-item:hover .nav-link, .custom_nav-container .navbar-nav .nav-item.active .nav-link {
+.custom_nav-container .navbar-nav .nav-item:hover .nav-link,
+.custom_nav-container .navbar-nav .nav-item.active .nav-link {
   color: #00bbf0;
 }
 
@@ -212,7 +214,8 @@ a:focus {
   transition: all 0.3s;
 }
 
-.custom_nav-container .navbar-toggler span::before, .custom_nav-container .navbar-toggler span::after {
+.custom_nav-container .navbar-toggler span::before,
+.custom_nav-container .navbar-toggler span::after {
   content: "";
   position: absolute;
   left: 0;
@@ -239,14 +242,14 @@ a:focus {
           transform: rotate(45deg);
 }
 
-.custom_nav-container .navbar-toggler[aria-expanded="true"] span::before, .custom_nav-container .navbar-toggler[aria-expanded="true"] span::after {
+.custom_nav-container .navbar-toggler[aria-expanded="true"] span::before,
+.custom_nav-container .navbar-toggler[aria-expanded="true"] span::after {
   -webkit-transform: rotate(90deg);
           transform: rotate(90deg);
   top: 0;
 }
 
-/*end header section*/
-/* slider section */
+/* Slider Section */
 .slider_section {
   -webkit-box-flex: 1;
       -ms-flex: 1;
@@ -398,6 +401,7 @@ a:focus {
   background-color: #00bbf0;
 }
 
+/* Service Section */
 .service_section {
   position: relative;
 }
@@ -482,6 +486,7 @@ a:focus {
   background-color: #007fa4;
 }
 
+/* About Section */
 .about_section {
   background-color: #00204a;
   color: #ffffff;
@@ -525,6 +530,7 @@ a:focus {
   background-color: #007fa4;
 }
 
+/* Why Section */
 .why_section .box {
   margin-top: 45px;
   display: -webkit-box;
@@ -599,7 +605,7 @@ a:focus {
   background-color: #007fa4;
 }
 
-/*team section */
+/* Team Section */
 .team_section {
   text-align: center;
   background-color: #00204a;
@@ -674,8 +680,7 @@ a:focus {
   color: #00bbf0;
 }
 
-/*team section end*/
-/* client section start */
+/* Client Section */
 .client_section .heading_container {
   margin-bottom: 30px;
 }
@@ -773,7 +778,7 @@ a:focus {
   color: #00204a;
 }
 
-/* client section end */
+/* Info Section */
 .info_section {
   background-color: #00204a;
   color: #ffffff;
@@ -911,7 +916,7 @@ a:focus {
   background-color: #007fa4;
 }
 
-/* footer section*/
+/* Footer Section */
 .footer_section {
   position: relative;
   background-color: #ffffff;
@@ -927,4 +932,91 @@ a:focus {
 .footer_section p a {
   color: inherit;
 }
-/*# sourceMappingURL=style.css.map */
+
+/* Additional CSS for MyPage Profile Section */
+
+/* 마이페이지 프로필 스타일 추가 */
+.profile-section {
+  padding: 50px 0;
+  background-color: #f9f9f9;
+}
+
+.profile-card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-card img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+.profile-info h3 {
+  margin-bottom: 10px;
+  color: #00204a;
+}
+
+.profile-info p {
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+.tech-stack-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.tech-stack-list li {
+  display: inline-block;
+  background-color: #e0e0e0;
+  padding: 5px 10px;
+  border-radius: 20px;
+  margin: 5px 5px 0 0;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background-color: #00bbf0;
+  border: none;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #007fa4;
+}
+
+/* Responsive Adjustments (Optional) */
+@media (max-width: 768px) {
+  .profile-card {
+    padding: 20px;
+  }
+
+  .profile-card img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .profile-info h3 {
+    font-size: 1.5rem;
+  }
+
+  .profile-info p {
+    font-size: 14px;
+  }
+
+  .tech-stack-list li {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .btn-primary {
+    padding: 8px 20px;
+  }
+}
+
+/* End of style.css */

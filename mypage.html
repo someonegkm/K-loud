@@ -13,42 +13,35 @@
   <meta name="author" content="" />
   <link rel="shortcut icon" href="images/favicon.png" type="">
 
-  <title> Finexo </title>
+  <title>Finexo - 마이페이지</title>
 
-  <!-- bootstrap core css -->
+  <!-- Bootstrap Core CSS -->
   <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
 
-  <!-- fonts style -->
+  <!-- Fonts Style -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
 
-  <!-- owl slider stylesheet -->
+  <!-- Owl Slider Stylesheet -->
   <link rel="stylesheet" type="text/css"
     href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
 
-  <!-- font awesome style -->
+  <!-- Font Awesome Style -->
   <link href="css/font-awesome.min.css" rel="stylesheet" />
 
-  <!-- Custom styles for this template -->
+  <!-- Custom Styles for This Template -->
   <link href="css/style.css" rel="stylesheet" />
-  <!-- responsive style -->
+  <!-- Responsive Style -->
   <link href="css/responsive.css" rel="stylesheet" />
-
 </head>
 
 <body class="sub_page">
 
   <div class="hero_area">
 
-    <div class="hero_bg_box">
-      <div class="bg_img_box">
-        <img src="images/hero-bg.png" alt="">
-      </div>
-    </div>
-
-    <!-- header section starts -->
+    <!-- Header Section Starts -->
     <header class="header_section">
       <div class="container-fluid">
-        <nav class="navbar navbar-expand-lg custom_nav-container ">
+        <nav class="navbar navbar-expand-lg custom_nav-container">
           <a class="navbar-brand" href="index.html">
             <span>
               Finexo
@@ -62,7 +55,7 @@
           </button>
 
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav  ">
+            <ul class="navbar-nav">
               <li class="nav-item ">
                 <a class="nav-link" href="index.html">Home </a>
               </li>
@@ -85,7 +78,7 @@
                 </a>
               </li>
               <form class="form-inline">
-                <button class="btn  my-2 my-sm-0 nav_search-btn" type="submit">
+                <button class="btn my-2 my-sm-0 nav_search-btn" type="submit">
                   <i class="fa fa-search" aria-hidden="true"></i>
                 </button>
               </form>
@@ -94,50 +87,64 @@
         </nav>
       </div>
     </header>
-    <!-- end header section -->
+    <!-- Header Section Ends -->
   </div>
 
   <!-- 마이페이지 내용 시작 -->
-  <section class="team_section layout_padding">
-    <div class="container-fluid">
+  <section class="profile-section">
+    <div class="container">
       <div class="heading_container heading_center">
-        <h2 class="">
+        <h2>
           마이페이지
         </h2>
       </div>
 
-      <div class="team_container">
-        <div class="row">
-          <!-- 사용자 정보 또는 콘텐츠를 여기에 추가하세요 -->
-          <!-- 예시로 팀 멤버 섹션을 사용했습니다 -->
-          <!-- 팀 멤버 1 -->
-          <div class="col-lg-3 col-sm-6">
-            <div class="box ">
-              <div class="img-box">
-                <img src="images/team-1.jpg" class="img1" alt="">
-              </div>
-              <div class="detail-box">
-                <h5>
-                  사용자 이름
-                </h5>
-                <p>
-                  사용자 정보 또는 설명
-                </p>
-              </div>
-            </div>
+      <div class="profile-card">
+        <form id="profile-form">
+          <div class="form-group">
+            <label for="user-name"><strong>이름</strong></label>
+            <input type="text" class="form-control" id="user-name" required>
           </div>
-          <!-- 추가 콘텐츠를 원하시면 여기에 추가하세요 -->
-        </div>
+          <div class="form-group">
+            <label for="user-email"><strong>Email</strong></label>
+            <input type="email" class="form-control" id="user-email" required>
+          </div>
+          <div class="form-group">
+            <label for="user-techstack"><strong>기술 스택</strong></label>
+            <input type="text" class="form-control" id="user-techstack" placeholder="콤마로 구분 (예: Python, AWS)">
+          </div>
+          <div class="form-group">
+            <label for="user-experience"><strong>경력 (년수)</strong></label>
+            <input type="number" class="form-control" id="user-experience" min="0">
+          </div>
+          <div class="form-group">
+            <label for="user-project-preference"><strong>선호하는 프로젝트 유형</strong></label>
+            <input type="text" class="form-control" id="user-project-preference" placeholder="예: AI, 웹 개발">
+          </div>
+          <div class="form-group">
+            <label for="user-project-experience"><strong>프로젝트 경험 (프로젝트 수)</strong></label>
+            <input type="number" class="form-control" id="user-project-experience" min="0">
+          </div>
+          <div class="form-group">
+            <label for="user-github"><strong>GitHub 링크</strong></label>
+            <input type="url" class="form-control" id="user-github" placeholder="https://github.com/username">
+          </div>
+          <div class="form-group">
+            <label for="user-profile-image-url"><strong>프로필 이미지 URL</strong></label>
+            <input type="url" class="form-control" id="user-profile-image-url" placeholder="https://example.com/image.jpg" disabled>
+            <small class="form-text text-muted">프로필 이미지는 관리자에 의해 자동으로 설정됩니다.</small>
+          </div>
+          <button type="submit" class="btn btn-primary">저장</button>
+        </form>
       </div>
     </div>
   </section>
   <!-- 마이페이지 내용 끝 -->
 
-  <!-- info section -->
+  <!-- Info Section -->
   <section class="info_section layout_padding2">
     <div class="container">
       <div class="row">
-        <!-- ... (info 섹션 내용은 index.html과 동일하게 유지) ... -->
         <!-- 정보 컬럼 1 -->
         <div class="col-md-6 col-lg-3 info_col">
           <div class="info_contact">
@@ -185,9 +192,9 @@
       </div>
     </div>
   </section>
-  <!-- end info section -->
+  <!-- End Info Section -->
 
-  <!-- footer section -->
+  <!-- Footer Section -->
   <section class="footer_section">
     <div class="container">
       <p>
@@ -196,41 +203,34 @@
       </p>
     </div>
   </section>
-  <!-- end footer section -->
+  <!-- End Footer Section -->
 
   <!-- AWS Cognito JavaScript SDK -->
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
   <!-- JavaScript 파일 연결 -->
   <script src="js/cognito.js"></script>
-
-  <!-- 페이지 보호를 위한 스크립트 -->
-  <script>
-    // 페이지 로딩 시 로그인 상태 확인 및 리디렉션
-    window.onload = function() {
-      checkLoginStatus();
-      requireLogin(); // 로그인 상태가 아닌 경우 로그인 페이지로 리디렉션
-    };
-  </script>
+  <!-- 마이페이지 전용 JavaScript 파일 연결 -->
+  <script src="js/mypage.js"></script>
 
   <!-- jQuery -->
   <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
-  <!-- popper js -->
+  <!-- Popper.js -->
   <script
     src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
     integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
     crossorigin="anonymous">
   </script>
-  <!-- bootstrap js -->
+  <!-- Bootstrap JS -->
   <script type="text/javascript" src="js/bootstrap.js"></script>
-  <!-- owl slider -->
+  <!-- Owl Carousel -->
   <script type="text/javascript"
-    src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js">
+    src="">
   </script>
-  <!-- custom js -->
+  <!-- Custom JS -->
   <script type="text/javascript" src="js/custom.js"></script>
   <!-- Google Map -->
   <script
-    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=myMap">
+    src="">
   </script>
   <!-- End Google Map -->
 
