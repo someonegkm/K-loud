@@ -1,5 +1,5 @@
 // API Gateway 엔드포인트 URL (실제 API Gateway URL로 교체하세요)
-const API_BASE_URL = 'https://{api-id}.execute-api.{region}.amazonaws.com/prod/profile';
+const API_BASE_URL = 'https://m5qcpzwhtg.execute-api.ap-northeast-2.amazonaws.com/prod/profile';
 
 window.onload = function () {
     console.log('페이지 로드');
