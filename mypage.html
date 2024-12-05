@@ -101,42 +101,40 @@
 
       <div class="profile-card">
         <form id="profile-form">
-          <div class="form-group">
-            <label for="user-name"><strong>이름</strong></label>
-            <input type="text" class="form-control" id="user-name" required>
-          </div>
-          <div class="form-group">
-            <label for="user-email"><strong>Email</strong></label>
-            <input type="email" class="form-control" id="user-email" required>
-          </div>
-          <div class="form-group">
-            <label for="user-techstack"><strong>기술 스택</strong></label>
-            <input type="text" class="form-control" id="user-techstack" placeholder="콤마로 구분 (예: Python, AWS)">
-          </div>
-          <div class="form-group">
-            <label for="user-experience"><strong>경력 (년수)</strong></label>
-            <input type="number" class="form-control" id="user-experience" min="0">
-          </div>
-          <div class="form-group">
-            <label for="user-project-preference"><strong>선호하는 프로젝트 유형</strong></label>
-            <input type="text" class="form-control" id="user-project-preference" placeholder="예: AI, 웹 개발">
-          </div>
-          <div class="form-group">
-            <label for="user-project-experience"><strong>프로젝트 경험 (프로젝트 수)</strong></label>
-            <input type="number" class="form-control" id="user-project-experience" min="0">
-          </div>
-          <div class="form-group">
-            <label for="user-github"><strong>GitHub 링크</strong></label>
-            <input type="url" class="form-control" id="user-github" placeholder="https://github.com/username">
-          </div>
-          <div class="form-group">
-            <label for="user-profile-image-url"><strong>프로필 이미지 URL</strong></label>
-            <input type="url" class="form-control" id="user-profile-image-url" placeholder="https://example.com/image.jpg" disabled>
-            <small class="form-text text-muted">프로필 이미지는 관리자에 의해 자동으로 설정됩니다.</small>
-          </div>
-          <button type="submit" class="btn btn-primary">저장</button>
+            <div class="form-group">
+                <label for="user-name"><strong>이름</strong></label>
+                <!-- 수정 불가능하게 readonly 속성 추가 -->
+                <input type="text" class="form-control" id="user-name" readonly>
+            </div>
+            <div class="form-group">
+                <label for="user-email"><strong>Email</strong></label>
+                <!-- 수정 불가능하게 readonly 속성 추가 -->
+                <input type="email" class="form-control" id="user-email" readonly>
+            </div>
+            <div class="form-group">
+                <label for="user-techstack"><strong>기술 스택</strong></label>
+                <input type="text" class="form-control" id="user-techstack" placeholder="콤마로 구분 (예: Python, AWS)">
+            </div>
+            <div class="form-group">
+                <label for="user-experience"><strong>경력 (년수)</strong></label>
+                <input type="number" class="form-control" id="user-experience" min="0">
+            </div>
+            <div class="form-group">
+                <label for="user-project-preference"><strong>선호하는 프로젝트 유형</strong></label>
+                <input type="text" class="form-control" id="user-project-preference" placeholder="예: AI, 웹 개발">
+            </div>
+            <div class="form-group">
+                <label for="user-project-experience"><strong>프로젝트 경험 (프로젝트 수)</strong></label>
+                <input type="number" class="form-control" id="user-project-experience" min="0">
+            </div>
+            <div class="form-group">
+                <label for="user-github"><strong>GitHub 링크</strong></label>
+                <input type="url" class="form-control" id="user-github" placeholder="https://github.com/username">
+            </div>
+            <button type="submit" class="btn btn-primary">저장</button>
         </form>
-      </div>
+    </div>
+    
     </div>
   </section>
   <!-- 마이페이지 내용 끝 -->
