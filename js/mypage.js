@@ -67,8 +67,7 @@ function attachFormSubmitEvent() {
                 return;
             }
 
-            const idToken = session.getIdToken().getJwtToken();
-            console.log('ID Token:', idToken);
+            console.log('세션이 성공적으로 가져와졌습니다.');
 
             // 입력된 프로필 데이터 가져오기
             const updatedProfile = {
@@ -85,34 +84,9 @@ function attachFormSubmitEvent() {
                 return;
             }
 
-            // API 요청 (Lambda를 통해 DynamoDB에 저장)
-            const API_BASE_URL = 'https://lyxy5nvij3.execute-api.ap-northeast-2.amazonaws.com/prod/profile'; // API Gateway URL로 변경
-            fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': idToken
-                },
-                body: JSON.stringify(updatedProfile)
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP 상태 코드: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('저장 응답 데이터:', data);
-                    if (data.message) {
-                        alert(data.message); // 성공 메시지
-                    } else {
-                        alert('알 수 없는 오류가 발생했습니다.');
-                    }
-                })
-                .catch(error => {
-                    console.error('프로필 저장 오류:', error);
-                    alert('프로필 저장 중 오류가 발생했습니다.');
-                });
+            // 데이터 저장 로직 추가 가능 (예: 로컬 저장, 다른 처리 등)
+            console.log('저장할 데이터:', updatedProfile);
+            alert('프로필 데이터가 성공적으로 처리되었습니다!');
         });
     });
 }
