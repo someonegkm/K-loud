@@ -1,7 +1,7 @@
 // AWS Cognito 설정
 const poolData = {
-  UserPoolId: 'ap-northeast-2_AOgRZ1a3u', // 실제 사용자 풀 ID
-  ClientId: '5o12nbraveo9g0g3l7k71njh7k',  // 실제 앱 클라이언트 ID
+  UserPoolId: 'ap-northeast-2_AOgRZ1a3u', // 실제 사용자 풀 ID로 변경하세요
+  ClientId: '5o12nbraveo9g0g3l7k71njh7k',  // 실제 앱 클라이언트 ID로 변경하세요
 };
 
 const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
@@ -27,7 +27,7 @@ document.getElementById('signup-button').addEventListener('click', function (e) 
   e.preventDefault(); // 폼 기본 동작 방지
 
   id = document.getElementById('signup-id').value.trim();
-  const username = document.getElementById('signup-username').value.trim();
+  const username = document.getElementById('signup-username').value.trim(); // 이름
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value.trim();
   const confirmPassword = document.getElementById('signup-confirm-password').value.trim();
@@ -85,14 +85,15 @@ document.getElementById('signup-button').addEventListener('click', function (e) 
   const attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute(dataEmail);
   attributeList.push(attributeEmail);
 
-  // 사용자 이름 속성 추가
-  const dataUsername = {
+  // 이름 속성 추가 (Lambda 함수에서 사용)
+  const dataName = {
     Name: 'name',
     Value: username,
   };
-  const attributeUsername = new AmazonCognitoIdentity.CognitoUserAttribute(dataUsername);
-  attributeList.push(attributeUsername);
+  const attributeName = new AmazonCognitoIdentity.CognitoUserAttribute(dataName);
+  attributeList.push(attributeName);
 
+  // 회원가입 진행
   userPool.signUp(id, password, attributeList, null, function(err, result) {
     if (err) {
       errorElement.textContent = err.message || JSON.stringify(err);
