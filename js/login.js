@@ -207,10 +207,55 @@ document.getElementById('signin-button').addEventListener('click', function (e) 
     },
 
     onFailure: function(err) {
-      signinErrorElement.textContent = err.message || JSON.stringify(err);
-      signinErrorElement.style.color = 'red';
-      signinErrorElement.style.display = 'block';
+      // 특정 오류 코드 처리
+      if (err.code === 'UserNotConfirmedException') {
+        signinErrorElement.textContent = '이메일을 확인하지 않았습니다. 확인 코드를 다시 전송해주세요.';
+        signinErrorElement.style.color = 'red';
+        signinErrorElement.style.display = 'block';
+
+        // 확인 코드 재전송 버튼 표시
+        document.getElementById('resend-code-group').style.display = 'block';
+        document.getElementById('resend-button').style.display = 'block';
+      } else {
+        signinErrorElement.textContent = err.message || JSON.stringify(err);
+        signinErrorElement.style.color = 'red';
+        signinErrorElement.style.display = 'block';
+      }
     },
+
+    // 새로운 비밀번호 설정 필요 시 처리
+    newPasswordRequired: function(userAttributes, requiredAttributes) {
+      // 필요에 따라 새로운 비밀번호를 요구하는 로직을 구현할 수 있습니다.
+      // 예를 들어, 사용자에게 새로운 비밀번호를 입력받는 UI를 표시할 수 있습니다.
+      signinErrorElement.textContent = '새로운 비밀번호를 설정해주세요.';
+      signinErrorElement.style.color = 'orange';
+      signinErrorElement.style.display = 'block';
+    }
+  });
+});
+
+// 확인 코드 재전송 처리 로직 추가
+document.getElementById('resend-button').addEventListener('click', function (e) {
+  e.preventDefault();
+
+  const errorElement = document.getElementById('signin-error');
+
+  const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+    Username: id,
+    Pool: userPool,
+  });
+
+  cognitoUser.resendConfirmationCode(function(err, result) {
+    if (err) {
+      errorElement.textContent = err.message || JSON.stringify(err);
+      errorElement.style.color = 'red';
+      errorElement.style.display = 'block';
+      return;
+    }
+    console.log('확인 코드 재전송 성공:', result);
+    errorElement.textContent = '확인 코드가 이메일로 재전송되었습니다.';
+    errorElement.style.color = 'green';
+    errorElement.style.display = 'block';
   });
 });
 
