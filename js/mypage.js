@@ -3,9 +3,10 @@ const API_BASE_URL = 'https://m5qcpzwhtg.execute-api.ap-northeast-2.amazonaws.co
 
 window.onload = function () {
     console.log('페이지 로드');
+    console.log('API_BASE_URL:', API_BASE_URL);
     checkLoginStatus();
-    requireLogin(); // 로그인 상태가 아닌 경우 로그인 페이지로 리디렉션
-    loadUserProfile(); // 사용자 프로필 불러오기
+    requireLogin();
+    loadUserProfile();
 };
 
 // 로그인 상태 확인 함수
@@ -57,15 +58,18 @@ function loadUserProfile() {
                 .then(data => {
                     console.log('프로필 데이터:', data);
 
+                    // Lambda 응답의 body가 JSON으로 직렬화되어 있으므로 파싱 필요
+                    const profile = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+
                     // 사용자 정보 채우기
-                    document.getElementById('user-name').value = data.name || '';
-                    document.getElementById('user-email').value = data.email || '';
-                    document.getElementById('user-techstack').value = (data.TechStack || []).join(', ');
-                    document.getElementById('user-experience').value = data.Experience || 0;
-                    document.getElementById('user-project-preference').value = data.ProjectPreference || '';
-                    document.getElementById('user-project-experience').value = data.ProjectExperience || 0;
-                    document.getElementById('user-github').value = data.GithubURL || '';
-                    document.getElementById('user-profile-image-url').value = data.ProfileImageURL || 'images/profile-placeholder.png';
+                    document.getElementById('user-name').value = profile.name || '';
+                    document.getElementById('user-email').value = profile.email || '';
+                    document.getElementById('user-techstack').value = (profile.TechStack || []).join(', ');
+                    document.getElementById('user-experience').value = profile.Experience || 0;
+                    document.getElementById('user-project-preference').value = profile.ProjectPreference || '';
+                    document.getElementById('user-project-experience').value = profile.ProjectExperience || 0;
+                    document.getElementById('user-github').value = profile.GithubURL || '';
+                    document.getElementById('user-profile-image-url').value = profile.ProfileImageURL || 'images/profile-placeholder.png';
                 })
                 .catch(error => {
                     console.error('프로필 가져오기 오류:', error);
@@ -115,7 +119,7 @@ document.getElementById('profile-form').addEventListener('submit', function (e) 
             return;
         }
 
-        // POST 요청으로 프로필 데이터 업데이트
+        // POST 요청으로 프로필 데이터 저장
         fetch(API_BASE_URL, {
             method: 'POST',
             headers: {
@@ -124,12 +128,17 @@ document.getElementById('profile-form').addEventListener('submit', function (e) 
             },
             body: JSON.stringify(updatedProfile)
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP 상태 코드: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                console.log('응답 데이터:', data);
+                console.log('저장 응답 데이터:', data);
                 if (data.message) {
-                    alert(data.message); // 성공 메시지 표시
-                    loadUserProfile(); // 업데이트된 프로필 다시 로드
+                    alert(data.message); // 성공 메시지
+                    loadUserProfile(); // 저장 후 새로 고침
                 } else {
                     alert('알 수 없는 오류가 발생했습니다.');
                 }
