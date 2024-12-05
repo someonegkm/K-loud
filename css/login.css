@@ -1,0 +1,402 @@
+:root {
+    --primary-color: #0372f1; /* 밝은 블루 */
+    --secondary-color: #1A1A40; /* 다크 블루 */
+    --black: #000000;
+    --white: #ffffff;
+    --back: #bad2f5;
+    --gray: #ffffff; /* 입력 필드 배경색을 흰색으로 변경 */
+    --gray-2: #CCCCCC; /* 입력 필드 아이콘 및 플레이스홀더 색상 */
+
+    --facebook-color: #4267B2;
+    --google-color: #DB4437;
+    --twitter-color: #1DA1F2;
+    --insta-color: #E1306C;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600&display=swap');
+
+* {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--back); /* 전체 배경색을 밝은 블루로 설정 */
+    color: var(--black); /* 기본 텍스트 색상을 검정으로 설정 */
+}
+
+.container {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    height: 100vh;
+}
+
+.col {
+    width: 50%;
+}
+
+.align-items-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 28rem;
+}
+
+.form {
+    padding: 1rem;
+    background-color: var(--white); /* 폼 배경색을 흰색으로 설정 */
+    border-radius: 1.5rem;
+    width: 100%;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    transform: scale(0);
+    transition: .5s ease-in-out;
+    transition-delay: 1s;
+    color: var(--black);
+}
+
+.input-group {
+    position: relative;
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.input-group i {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+    font-size: 1.4rem;
+    color: var(--gray-2);
+}
+
+.input-group input {
+    width: 100%;
+    padding: 1rem 3rem;
+    font-size: 1rem;
+    background-color: var(--gray); /* 입력 필드 배경색을 흰색으로 설정 */
+    border-radius: .5rem;
+    border: 1px solid var(--gray-2); /* 입력 필드 테두리 색상 */
+    color: var(--black);
+    outline: none;
+}
+
+.input-group input:focus {
+    border: 1px solid var(--primary-color);
+}
+
+.input-group input::placeholder {
+    color: var(--gray-2); /* 플레이스홀더 색상 */
+}
+
+.form button {
+    cursor: pointer;
+    width: 100%;
+    padding: .6rem 0;
+    border-radius: .5rem;
+    border: none;
+    background-color: var(--secondary-color); /* 버튼 색상을 다크 블루로 설정 */
+    color: var(--white);
+    font-size: 1.2rem;
+    outline: none;
+}
+
+.form button:hover {
+    background-color: #141438; /* 버튼 호버 시 색상 */
+}
+
+.form p {
+    margin: 1rem 0;
+    font-size: .7rem;
+    color: var(--black);
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.container.sign-in .form.sign-in,
+.container.sign-in .social-list.sign-in,
+.container.sign-in .social-list.sign-in > div,
+.container.sign-up .form.sign-up,
+.container.sign-up .social-list.sign-up,
+.container.sign-up .social-list.sign-up > div {
+    transform: scale(1);
+}
+
+.content-row {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 6;
+    width: 100%;
+}
+
+.text {
+    margin: 4rem;
+    color: var(--white);
+}
+
+.text h2 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin: 2rem 0;
+    transition: 1s ease-in-out;
+}
+
+.text p {
+    font-weight: 600;
+    transition: 1s ease-in-out;
+    transition-delay: .2s;
+}
+
+.img img {
+    width: 30vw;
+    transition: 1s ease-in-out;
+    transition-delay: .4s;
+}
+
+.text.sign-in h2,
+.text.sign-in p,
+.img.sign-in img {
+    transform: translateX(-250%);
+}
+
+.text.sign-up h2,
+.text.sign-up p,
+.img.sign-up img {
+    transform: translateX(250%);
+}
+
+.container.sign-in .text.sign-in h2,
+.container.sign-in .text.sign-in p,
+.container.sign-in .img.sign-in img,
+.container.sign-up .text.sign-up h2,
+.container.sign-up .text.sign-up p,
+.container.sign-up .img.sign-up img {
+    transform: translateX(0);
+}
+
+/* 소셜 로그인 박스 스타일 */
+.social-login-box {
+    text-align: center;
+    background-color: var(--white); /* 박스 배경색 */
+    padding: 1rem;
+    margin-top: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%; /* 부모의 넓이 조정 */
+    max-width: 20rem;
+}
+
+.social-login-box h3 {
+    font-size: 1.2rem;
+    color: var(--black);
+    margin-bottom: 1rem;
+}
+
+.social-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.social-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    border: none; /* 테두리 제거 */
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: var(--gray); /* 기본 배경색 */
+}
+
+.social-icon i {
+    font-size: 1.5rem;
+    color: var(--black);
+}
+
+/* 각각의 소셜 버튼 색상 */
+.social-icon.facebook:hover {
+    background-color: #4267B2;
+    color: var(--white);
+}
+
+.social-icon.google:hover {
+    background-color: #DB4437;
+    color: var(--white);
+}
+
+.social-icon.kakao:hover {
+    background-color: #FFD700; /* 호버 시 조금 더 진한 노란색 */
+    color: #3C1E1E; /* 카카오톡 텍스트 컬러 */
+}
+
+/* X 버튼 스타일 */
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 2rem;
+    color: var(--black);
+    cursor: pointer;
+    z-index: 10;
+    transition: color 0.3s ease;
+}
+
+.close-button:hover {
+    color: var(--secondary-color); /* 호버 시 색상 변경 */
+}
+
+
+/* BACKGROUND */
+
+.container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 300vw;
+    transform: translate(35%, 0);
+    background-image: linear-gradient(-45deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+    /* 배경 그라데이션 색상 순서 변경 */
+    transition: 1s ease-in-out;
+    z-index: 6;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    border-bottom-right-radius: max(50vw, 50vh);
+    border-top-left-radius: max(50vw, 50vh);
+}
+
+.container.sign-in::before {
+    transform: translate(0, 0);
+    right: 50%;
+}
+
+.container.sign-up::before {
+    transform: translate(100%, 0);
+    right: 50%;
+}
+
+/* 움직이는 동그라미 스타일 */
+
+.circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background-color: var(--secondary-color); /* 동그라미를 어두운 색으로 설정 */
+    width: 200px;
+    height: 200px;
+    margin: -100px;
+    border-radius: 50%;
+    animation: circleMove 5s infinite;
+    z-index: 5;
+}
+
+@keyframes circleMove {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* 에러 메시지 스타일 */
+
+#signup-error,
+#signin-error {
+    color: var(--secondary-color); /* 에러 메시지를 어두운 색으로 설정 */
+    font-size: 0.9rem;
+}
+
+/* RESPONSIVE */
+
+@media only screen and (max-width: 425px) {
+
+    .container::before,
+    .container.sign-in::before,
+    .container.sign-up::before {
+        height: 100vh;
+        border-bottom-right-radius: 0;
+        border-top-left-radius: 0;
+        z-index: 0;
+        transform: none;
+        right: 0;
+    }
+
+    .container.sign-in .col.sign-in,
+    .container.sign-up .col.sign-up {
+        transform: translateY(0);
+    }
+
+    .content-row {
+        align-items: flex-start !important;
+    }
+
+    .content-row .col {
+        transform: translateY(0);
+        background-color: unset;
+    }
+
+    .col {
+        width: 100%;
+        position: absolute;
+        padding: 2rem;
+        background-color: var(--white);
+        border-top-left-radius: 2rem;
+        border-top-right-radius: 2rem;
+        transform: translateY(100%);
+        transition: 1s ease-in-out;
+    }
+
+    .row {
+        align-items: flex-end;
+        justify-content: flex-end;
+    }
+
+    .form {
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .text {
+        margin: 0;
+    }
+
+    .text p {
+        display: none;
+    }
+
+    .text h2 {
+        margin: .5rem;
+        font-size: 2rem;
+    }
+}

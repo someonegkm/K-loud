@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>로그인 / 회원가입</title>
+  <!-- 반응형 웹을 위한 뷰포트 설정 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- CSS 파일 연결 -->
+  <link rel="stylesheet" href="css/login.css">
+  <!-- 아이콘 폰트 연결 -->
+  <link href='https://unpkg.com/boxicons/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+  <!-- X 버튼 추가 -->
+  <div class="close-button" onclick="goToMain()">
+    <i class='bx bx-x'></i>
+  </div>
+
+  <div id="container" class="container">
+    <div class="row">
+      <!-- SIGN UP -->
+      <div class="col align-items-center flex-col sign-up">
+        <div class="form-wrapper align-items-center">
+          <!-- 회원가입 폼 시작 -->
+          <form id="signup-form" class="form sign-up">
+            <div class="input-group">
+              <i class='bx bxs-user'></i>
+              <input type="text" id="signup-id" placeholder="아이디">
+            </div>
+            <div class="input-group">
+              <i class='bx bxs-user'></i>
+              <input type="text" id="signup-username" placeholder="사용자 이름">
+            </div>
+            <div class="input-group">
+              <i class='bx bx-mail-send'></i>
+              <input type="email" id="signup-email" placeholder="Email">
+            </div>
+            <div class="input-group">
+              <i class='bx bxs-lock-alt'></i>
+              <input type="password" id="signup-password" placeholder="비밀번호">
+            </div>
+            <div class="input-group">
+              <i class='bx bxs-lock-alt'></i>
+              <input type="password" id="signup-confirm-password" placeholder="비밀번호 확인">
+            </div>
+
+            <!-- 오류 메시지 표시 -->
+            <p id="signup-error" style="color: red; display: none;"></p>
+
+            <!-- 회원가입 버튼 -->
+            <button id="signup-button">회원가입</button>
+
+            <!-- 확인 코드 입력 필드 (초기에 숨김) -->
+            <div class="input-group" id="verification-code-group" style="display: none;">
+              <i class='bx bxs-key'></i>
+              <input type="text" id="verification-code" placeholder="확인 코드">
+            </div>
+
+            <!-- 확인 코드 제출 버튼 (초기에 숨김) -->
+            <button id="verify-button" style="display: none;">확인 코드 제출</button>
+
+            <p>
+              <span>이미 계정이 있으신가요?</span>
+              <b onclick="toggle()" class="pointer">로그인 창으로</b>
+            </p>
+          </form>
+          <!-- 회원가입 폼 끝 -->
+        </div>
+      </div>
+
+      <!-- SIGN IN -->
+      <div class="col align-items-center flex-col sign-in">
+        <div class="form-wrapper align-items-center">
+          <div class="form sign-in">
+            <div class="input-group">
+              <i class='bx bxs-user'></i>
+              <input type="text" id="signin-id" placeholder="아이디">
+            </div>
+            <div class="input-group">
+              <i class='bx bxs-lock-alt'></i>
+              <input type="password" id="signin-password" placeholder="비밀번호">
+            </div>
+            <p id="signin-error" style="color: red; display: none;"></p>
+            <button id="signin-button">로그인</button>
+            <p><b>비밀번호를 잊어버리셨나요?</b></p>
+            <p>
+              <span>계정이 없으신가요?</span>
+              <b onclick="toggle()" class="pointer">회원가입</b>
+            </p>
+          </div>
+        </div>
+        <!-- 소셜 로그인 박스 추가 -->
+        <div class="form-wrapper align-items-center">
+          <div class="social-login-box">
+            <h3>소셜 로그인</h3>
+            <div class="social-buttons">
+              <div class="social-icon facebook"><i class='bx bxl-facebook'></i></div>
+              <div class="social-icon google"><i class='bx bxl-google'></i></div>
+              <div class="social-icon kakao">
+                <i class="bx bxs-message-rounded"></i> <!-- 카카오톡 아이콘 -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT SECTION -->
+    <div class="row content-row">
+      <!-- SIGN IN CONTENT -->
+      <div class="col align-items-center flex-col">
+        <div class="text sign-in">
+          <h2>어서오세요!</h2>
+        </div>
+        <div class="img sign-in">
+          <!-- 필요 시 이미지 추가 -->
+        </div>
+      </div>
+      <!-- SIGN UP CONTENT -->
+      <div class="col align-items-center flex-col">
+        <div class="img sign-up">
+          <!-- 필요 시 이미지 추가 -->
+        </div>
+        <div class="text sign-up">
+          <h2>저희와 함께하세요!</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AWS Cognito JavaScript SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
+  <!-- JavaScript 파일 연결 -->
+  <script src="js/login.js"></script>
+</body>
+</html>
