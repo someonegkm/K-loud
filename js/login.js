@@ -85,9 +85,9 @@ document.getElementById('signup-button').addEventListener('click', function (e) 
   const attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute(dataEmail);
   attributeList.push(attributeEmail);
 
-  // 이름 속성 추가 (Lambda 함수에서 사용)
+  // 이름 속성 추가 (User Pool 설정에 따라 이름 속성 수정)
   const dataName = {
-    Name: 'name',
+    Name: 'name', // 필요 시 'given_name' 등으로 수정
     Value: username,
   };
   const attributeName = new AmazonCognitoIdentity.CognitoUserAttribute(dataName);
@@ -96,6 +96,7 @@ document.getElementById('signup-button').addEventListener('click', function (e) 
   // 회원가입 진행
   userPool.signUp(id, password, attributeList, null, function(err, result) {
     if (err) {
+      console.error('회원가입 오류:', err); // 오류 로그 추가
       errorElement.textContent = err.message || JSON.stringify(err);
       errorElement.style.color = 'red';
       errorElement.style.display = 'block';
@@ -137,6 +138,7 @@ document.getElementById('verify-button').addEventListener('click', function (e) 
 
   cognitoUser.confirmRegistration(verificationCode, true, function(err, result) {
     if (err) {
+      console.error('확인 코드 오류:', err); // 오류 로그 추가
       errorElement.textContent = err.message || JSON.stringify(err);
       errorElement.style.color = 'red';
       errorElement.style.display = 'block';
@@ -207,6 +209,7 @@ document.getElementById('signin-button').addEventListener('click', function (e) 
     },
 
     onFailure: function(err) {
+      console.error('로그인 실패:', err); // 오류 로그 추가
       // 특정 오류 코드 처리
       if (err.code === 'UserNotConfirmedException') {
         signinErrorElement.textContent = '이메일을 확인하지 않았습니다. 확인 코드를 다시 전송해주세요.';
@@ -247,6 +250,7 @@ document.getElementById('resend-button').addEventListener('click', function (e) 
 
   cognitoUser.resendConfirmationCode(function(err, result) {
     if (err) {
+      console.error('확인 코드 재전송 오류:', err); // 오류 로그 추가
       errorElement.textContent = err.message || JSON.stringify(err);
       errorElement.style.color = 'red';
       errorElement.style.display = 'block';
