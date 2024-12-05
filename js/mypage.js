@@ -1,13 +1,37 @@
 // API Gateway 엔드포인트 URL (실제 API Gateway URL로 교체하세요)
 const API_BASE_URL = 'https://m5qcpzwhtg.execute-api.ap-northeast-2.amazonaws.com/prod/profile';
 
+// 페이지 로드 시 실행
 window.onload = function () {
     console.log('페이지 로드');
     console.log('API_BASE_URL:', API_BASE_URL);
+    updateNavBar(); // 내비게이션 업데이트
     checkLoginStatus();
     requireLogin();
     loadUserProfile();
 };
+
+// 내비게이션 바 업데이트 함수
+function updateNavBar() {
+    const cognitoUser = userPool.getCurrentUser();
+    const loginLogoutLink = document.getElementById('login-logout-link');
+    const loginLogoutItem = document.getElementById('login-logout-item');
+
+    if (cognitoUser) {
+        // 로그인된 경우: 로그아웃 링크 표시
+        loginLogoutLink.textContent = '로그아웃';
+        loginLogoutLink.href = '#'; // 로그아웃 클릭 시 동작
+        loginLogoutLink.onclick = function () {
+            cognitoUser.signOut();
+            window.location.href = 'login.html';
+        };
+    } else {
+        // 로그인되지 않은 경우: 로그인 링크 표시
+        loginLogoutLink.textContent = '로그인';
+        loginLogoutLink.href = 'login.html';
+        loginLogoutLink.onclick = null;
+    }
+}
 
 // 로그인 상태 확인 함수
 function checkLoginStatus() {
@@ -42,45 +66,65 @@ function loadUserProfile() {
             const idToken = session.getIdToken().getJwtToken();
             console.log('ID Token:', idToken);
 
-            fetch(API_BASE_URL, {
-                method: 'GET',
-                headers: {
-                    'Authorization': idToken
+            // 사용자 속성 가져오기
+            cognitoUser.getUserAttributes(function (err, attributes) {
+                if (err) {
+                    console.error('사용자 속성 가져오기 오류:', err);
+                    alert('사용자 정보를 가져오는 중 오류가 발생했습니다.');
+                    return;
                 }
-            })
-                .then(response => {
-                    console.log('응답 상태 코드:', response.status);
-                    if (!response.ok) {
-                        throw new Error(`HTTP 상태 코드: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('프로필 데이터:', data);
 
-                    // Lambda 응답의 body가 JSON으로 직렬화되어 있으므로 파싱 필요
-                    const profile = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-
-                    // 사용자 정보 채우기
-                    document.getElementById('user-name').value = profile.name || '';
-                    document.getElementById('user-email').value = profile.email || '';
-                    document.getElementById('user-techstack').value = (profile.TechStack || []).join(', ');
-                    document.getElementById('user-experience').value = profile.Experience || 0;
-                    document.getElementById('user-project-preference').value = profile.ProjectPreference || '';
-                    document.getElementById('user-project-experience').value = profile.ProjectExperience || 0;
-                    document.getElementById('user-github').value = profile.GithubURL || '';
-                    document.getElementById('user-profile-image-url').value = profile.ProfileImageURL || 'images/profile-placeholder.png';
-                })
-                .catch(error => {
-                    console.error('프로필 가져오기 오류:', error);
-                    alert('프로필을 가져오는 중 오류가 발생했습니다.');
+                // 사용자 속성 처리
+                const userProfile = {};
+                attributes.forEach(attr => {
+                    userProfile[attr.getName()] = attr.getValue();
                 });
+
+                console.log('사용자 속성:', userProfile);
+
+                // Cognito에서 가져온 name과 email 채우기
+                document.getElementById('user-name').value = userProfile.name || '';
+                document.getElementById('user-email').value = userProfile.email || '';
+
+                // 추가 데이터 DynamoDB에서 가져오기
+                fetch(API_BASE_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': idToken
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP 상태 코드: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('프로필 데이터:', data);
+
+                        // Lambda 응답의 body가 JSON으로 직렬화되어 있으므로 파싱 필요
+                        const profile = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+
+                        // 사용자 정보 채우기
+                        document.getElementById('user-techstack').value = (profile.TechStack || []).join(', ');
+                        document.getElementById('user-experience').value = profile.Experience || 0;
+                        document.getElementById('user-project-preference').value = profile.ProjectPreference || '';
+                        document.getElementById('user-project-experience').value = profile.ProjectExperience || 0;
+                        document.getElementById('user-github').value = profile.GithubURL || '';
+                        document.getElementById('user-profile-image-url').value = profile.ProfileImageURL || 'images/profile-placeholder.png';
+                    })
+                    .catch(error => {
+                        console.error('프로필 가져오기 오류:', error);
+                        alert('프로필을 가져오는 중 오류가 발생했습니다.');
+                    });
+            });
         });
     } else {
         console.error('Cognito 사용자 없음');
         window.location.href = 'login.html';
     }
 }
+
 
 // 프로필 저장 버튼 이벤트 핸들러
 document.getElementById('profile-form').addEventListener('submit', function (e) {
