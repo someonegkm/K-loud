@@ -1,31 +1,37 @@
-// 사용자 프로필 데이터 가져오기
+// 사용자 프로필 데이터를 가져오고 폼에 채우기
 async function fetchUserProfile() {
     try {
-        const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile?UserID=${userSub}`, {
+        const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile?UserID=${localStorage.getItem('userID')}`, {
             method: 'GET',
             headers: {
-                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // 인증 토큰
             },
         });
 
         if (!response.ok) {
-            throw new Error('사용자 프로필 데이터를 가져오지 못했습니다.');
+            throw new Error('프로필 데이터를 가져오지 못했습니다.');
         }
 
-        const userProfile = await response.json();
-        console.log('가져온 사용자 데이터:', userProfile);
+        const { profile } = await response.json();
+        console.log('가져온 프로필 데이터:', profile);
 
-        // 폼 필드에 데이터 채우기 (하이픈 포함된 키는 대괄호 표기법 사용)
-        document.getElementById('user-techstack').value = userProfile['user-techstack'] || ''; // 대괄호 표기법
-        document.getElementById('user-project-preference').value = userProfile['user-project-preference'] || ''; // 대괄호 표기법
-        document.getElementById('user-project-experience').value = userProfile['user-project-experience'] || ''; // 대괄호 표기법
-        document.getElementById('user-github').value = userProfile['user-github'] || ''; // 대괄호 표기법
-        document.getElementById('user-intro').value = userProfile['user-intro'] || ''; // 대괄호 표기법
+        // 폼 필드에 데이터 채우기
+        document.getElementById('user-techstack').value = profile['user-techstack'] || '';
+        document.getElementById('user-project-preference').value = profile['user-project-preference'] || '';
+        document.getElementById('user-project-experience').value = profile['user-project-experience'] || '';
+        document.getElementById('user-github').value = profile['user-github'] || '';
+        document.getElementById('user-intro').value = profile['user-intro'] || '';
     } catch (error) {
-        console.error('사용자 데이터 가져오기 오류:', error);
-        alert('사용자 데이터를 가져오는 중 오류가 발생했습니다.');
+        console.error('프로필 데이터 가져오기 오류:', error);
+        alert('프로필 데이터를 가져오는 중 오류가 발생했습니다.');
     }
 }
+
+// 페이지 로드 시 사용자 프로필 가져오기
+document.addEventListener('DOMContentLoaded', function () {
+    fetchUserProfile();
+});
+
 
 // 페이지 로드 시 실행
 window.onload = function () {
