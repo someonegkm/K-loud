@@ -102,8 +102,9 @@ function attachFormSubmitEvent() {
         const email = document.getElementById('user-email').value;
         const userTechStack = document.getElementById('user-techstack').value;
         const userProjectPreference = document.getElementById('user-project-preference').value;
-        const userExperience = document.getElementById('user-experience').value;
+        const userProjectExperience = document.getElementById('user-project-experience').value;
         const userGithub = document.getElementById('user-github').value;
+        const userIntro = document.getElementById('user-intro').value; // 자기 소개 필드 추가
 
         // JSON 형식으로 데이터 생성
         const userProfile = {
@@ -112,13 +113,14 @@ function attachFormSubmitEvent() {
             email: email,
             user_techstack: userTechStack,
             user_project_preference: userProjectPreference,
-            user_experience: userExperience,
+            user_project_experience: userProjectExperience,
             user_github: userGithub,
+            user_intro: userIntro, // 자기 소개 추가
         };
 
         // API Gateway 호출
         try {
-            const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile', { // API Gateway 엔드포인트로 변경
+            const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -112,12 +112,8 @@
                 <input type="email" class="form-control" id="user-email" readonly>
             </div>
             <div class="form-group">
-                <label for="user-techstack"><strong>기술 스택</strong></label>
-                <input type="text" class="form-control" id="user-techstack" placeholder="콤마로 구분 (예: Python, AWS)">
-            </div>
-            <div class="form-group">
-                <label for="user-experience"><strong>경력 (년수)</strong></label>
-                <input type="number" class="form-control" id="user-experience" min="0">
+              <label for="user-techstack"><strong>기술 스택</strong></label>
+              <input type="text" class="form-control" id="user-techstack" placeholder="콤마로 구분 (예: Python, AWS)">
             </div>
             <div class="form-group">
                 <label for="user-project-preference"><strong>선호하는 프로젝트 유형</strong></label>
@@ -131,7 +127,12 @@
                 <label for="user-github"><strong>GitHub 링크</strong></label>
                 <input type="url" class="form-control" id="user-github" placeholder="https://github.com/username">
             </div>
-            <button type="submit" class="btn btn-primary">저장</button>
+            <!-- 자기 소개 추가 -->
+            <div class="form-group">
+                <label for="user-intro"><strong>자기 소개</strong></label>
+                <textarea class="form-control" id="user-intro" rows="4" placeholder="자기 소개를 입력하세요."></textarea>
+            </div>
+          <button type="submit" class="btn btn-primary">저장</button>
         </form>
     </div>
     
