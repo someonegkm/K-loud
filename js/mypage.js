@@ -1,3 +1,34 @@
+// 사용자 프로필 데이터 가져오기
+async function fetchUserProfile() {
+    try {
+        const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile?UserID=${userSub}`, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('사용자 프로필 데이터를 가져오지 못했습니다.');
+        }
+
+        const userProfile = await response.json();
+        console.log('가져온 사용자 데이터:', userProfile);
+
+        // 폼 필드에 데이터 채우기
+        document.getElementById('user-name').value = userProfile.name || '';
+        document.getElementById('user-email').value = userProfile.email || '';
+        document.getElementById('user-techstack').value = userProfile.user_techstack || '';
+        document.getElementById('user-project-preference').value = userProfile.user_project_preference || '';
+        document.getElementById('user-project-experience').value = userProfile.user_project_experience || '';
+        document.getElementById('user-github').value = userProfile.user_github || '';
+        document.getElementById('user-intro').value = userProfile.user_intro || ''; // 자기 소개
+    } catch (error) {
+        console.error('사용자 데이터 가져오기 오류:', error);
+        alert('사용자 데이터를 가져오는 중 오류가 발생했습니다.');
+    }
+}
+
 // 페이지 로드 시 실행
 window.onload = function () {
     console.log('페이지 로드');
