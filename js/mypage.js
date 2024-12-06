@@ -15,19 +15,20 @@ async function fetchUserProfile() {
         const userProfile = await response.json();
         console.log('가져온 사용자 데이터:', userProfile);
 
-        // 폼 필드에 데이터 채우기
+        // 폼 필드에 데이터 채우기 (하이픈 포함된 키는 대괄호 표기법 사용)
         document.getElementById('user-name').value = userProfile.name || '';
         document.getElementById('user-email').value = userProfile.email || '';
-        document.getElementById('user-techstack').value = userProfile.user_techstack || '';
-        document.getElementById('user-project-preference').value = userProfile.user_project_preference || '';
-        document.getElementById('user-project-experience').value = userProfile.user_project_experience || '';
-        document.getElementById('user-github').value = userProfile.user_github || '';
-        document.getElementById('user-intro').value = userProfile.user_intro || ''; // 자기 소개
+        document.getElementById('user-techstack').value = userProfile['user-techstack'] || ''; // 대괄호 표기법
+        document.getElementById('user-project-preference').value = userProfile['user-project-preference'] || ''; // 대괄호 표기법
+        document.getElementById('user-project-experience').value = userProfile['user-project-experience'] || ''; // 대괄호 표기법
+        document.getElementById('user-github').value = userProfile['user-github'] || ''; // 대괄호 표기법
+        document.getElementById('user-intro').value = userProfile['user-intro'] || ''; // 대괄호 표기법
     } catch (error) {
         console.error('사용자 데이터 가져오기 오류:', error);
         alert('사용자 데이터를 가져오는 중 오류가 발생했습니다.');
     }
 }
+
 
 // 페이지 로드 시 실행
 window.onload = function () {
@@ -92,6 +93,19 @@ function populateUserProfile() {
             }
 
             console.log('세션이 성공적으로 가져와졌습니다.');
+
+            // ID 토큰 가져오기
+            if (session.isValid()) {
+                const idToken = session.getIdToken().getJwtToken();
+                console.log("ID Token:", idToken);
+                localStorage.setItem('idToken', idToken);
+            } else {
+                console.error("세션이 유효하지 않습니다.");
+                alert("세션이 유효하지 않습니다. 다시 로그인해주세요.");
+                window.location.href = 'login.html';
+                return;
+            }
+
             // 사용자 속성 가져오기
             cognitoUser.getUserAttributes(function (err, attributes) {
                 if (err) {
@@ -99,21 +113,15 @@ function populateUserProfile() {
                     return;
                 }
 
-                // 사용자 속성을 가져온 후 필드 채우기
-                const nameField = document.getElementById('user-name');
-                const emailField = document.getElementById('user-email');
-
                 attributes.forEach(attribute => {
                     if (attribute.Name === 'sub') {
                         userSub = attribute.Value; // sub 값을 저장
-                    } else if (attribute.Name === 'name') {
-                        nameField.value = attribute.Value; // 이름 필드 채우기
-                    } else if (attribute.Name === 'email') {
-                        emailField.value = attribute.Value; // 이메일 필드 채우기
+                        console.log('사용자 sub:', userSub);
                     }
                 });
 
-                console.log('사용자 sub:', userSub);
+                // 사용자 속성 로드 후 fetchUserProfile 호출
+                fetchUserProfile(); // 여기에 호출
             });
         });
     } else {
@@ -121,6 +129,7 @@ function populateUserProfile() {
         window.location.href = 'login.html';
     }
 }
+
 
 // 폼 제출 이벤트 연결
 function attachFormSubmitEvent() {
