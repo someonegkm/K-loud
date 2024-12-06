@@ -82,8 +82,9 @@
             </div>
             <p id="signin-error" style="color: red; display: none;"></p>
             <button id="signin-button">로그인</button>
-            <p><b>비밀번호를 잊어버리셨나요?</b></p>
             <p>
+              <b id="forgot-password-link" class="pointer">비밀번호를 잊어버리셨나요?</b>
+            </p>
               <span>계정이 없으신가요?</span>
               <b onclick="toggle()" class="pointer">회원가입</b>
             </p>
@@ -91,7 +92,7 @@
         </div>
         <!-- 소셜 로그인 박스 추가 -->
         <div class="form-wrapper align-items-center">
-          <div class="social-login-box">
+          <div id="social-login" class="social-login-box">
             <h3>소셜 로그인</h3>
             <div class="social-buttons">
               <div class="social-icon facebook"><i class='bx bxl-facebook'></i></div>
