@@ -326,6 +326,22 @@ function resetPassword() {
   });
 }
 
+function logoutUser() {
+  const cognitoUser = userPool.getCurrentUser();
+  if (cognitoUser) {
+      cognitoUser.signOut(); // Cognito 세션 종료
+      console.log('사용자 로그아웃 성공');
+  }
+
+  // 로컬 스토리지 초기화
+  localStorage.removeItem('idToken');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+
+  // 로그인 페이지로 리디렉션
+  window.location.href = 'login.html';
+}
+
 
 function resetToLoginState() {
   const signinButton = document.getElementById('signin-button');
