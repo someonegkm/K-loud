@@ -1,4 +1,5 @@
 // 페이지 로드 시 실행
+// 
 window.onload = function () {
     console.log('페이지 로드');
     updateNavBar(); // 내비게이션 업데이트
