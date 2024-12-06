@@ -1,10 +1,9 @@
 // 페이지 로드 시 실행
-// 
 window.onload = function () {
     console.log('페이지 로드');
     updateNavBar(); // 내비게이션 업데이트
-    checkLoginStatus();
-    requireLogin();
+    checkLoginStatus(); // 로그인 상태 확인
+    requireLogin(); // 로그인 상태 리디렉션
     populateUserProfile(); // 사용자 프로필 채우기
     attachFormSubmitEvent(); // 폼 제출 이벤트 연결
 };
@@ -49,6 +48,8 @@ function requireLogin() {
 }
 
 // 사용자 프로필 채우기
+let userSub = ''; // Cognito sub 값을 저장할 변수
+
 function populateUserProfile() {
     const cognitoUser = userPool.getCurrentUser();
     if (cognitoUser) {
@@ -72,12 +73,16 @@ function populateUserProfile() {
                 const emailField = document.getElementById('user-email');
 
                 attributes.forEach(attribute => {
-                    if (attribute.Name === 'name') {
+                    if (attribute.Name === 'sub') {
+                        userSub = attribute.Value; // sub 값을 저장
+                    } else if (attribute.Name === 'name') {
                         nameField.value = attribute.Value; // 이름 필드 채우기
                     } else if (attribute.Name === 'email') {
                         emailField.value = attribute.Value; // 이메일 필드 채우기
                     }
                 });
+
+                console.log('사용자 sub:', userSub);
             });
         });
     } else {
@@ -86,39 +91,33 @@ function populateUserProfile() {
     }
 }
 
+// 폼 제출 이벤트 연결
 function attachFormSubmitEvent() {
     const form = document.getElementById('profile-form');
-    form.addEventListener('submit', async function (e) {
+    form.addEventListener('submit', function (e) {
         e.preventDefault(); // 기본 제출 동작 막기
 
-        const updatedProfile = {
-            TechStack: document.getElementById('user-techstack').value.split(',').map(item => item.trim()),
-            Experience: parseInt(document.getElementById('user-experience').value, 10),
-            ProjectPreference: document.getElementById('user-project-preference').value.trim(),
-            ProjectExperience: parseInt(document.getElementById('user-project-experience').value, 10),
-            GithubURL: document.getElementById('user-github').value.trim()
+        // 사용자 입력값 가져오기
+        const name = document.getElementById('user-name').value;
+        const email = document.getElementById('user-email').value;
+        const userTechStack = document.getElementById('user-techstack').value;
+        const userProjectPreference = document.getElementById('user-project-preference').value;
+        const userExperience = document.getElementById('user-experience').value;
+        const userGithub = document.getElementById('user-github').value;
+
+        // JSON 형식으로 데이터 생성
+        const userProfile = {
+            UserID: userSub, // Cognito sub 값 사용
+            name: name,
+            email: email,
+            user_techstack: userTechStack,
+            user_project_preference: userProjectPreference,
+            user_experience: userExperience,
+            user_github: userGithub,
         };
 
-        try {
-            const response = await fetch('https://ywris75rza.execute-api.ap-northeast-2.amazonaws.com/prod/save-profile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
-                },
-                body: JSON.stringify(updatedProfile),
-            });
-
-            if (!response.ok) {
-                throw new Error('API 호출 실패');
-            }
-
-            const result = await response.json();
-            alert('프로필이 성공적으로 저장되었습니다!');
-            console.log('저장된 데이터:', result);
-        } catch (error) {
-            console.error('API 호출 오류:', error);
-            alert('프로필 저장 중 오류가 발생했습니다.');
-        }
+        // 콘솔에 JSON 출력
+        console.log('사용자 프로필 데이터:', JSON.stringify(userProfile, null, 2));
+        alert('JSON 데이터가 콘솔에 출력되었습니다. 콘솔을 확인하세요.');
     });
 }
