@@ -326,20 +326,24 @@ function resetPassword() {
   });
 }
 
-function logoutUser() {
+function goToMain() {
+  // 메인 페이지로 이동
+  window.location.href = 'index.html'; // 메인 페이지 경로로 변경하세요
+}
+
+// 로그아웃 함수 추가
+function signOut() {
   const cognitoUser = userPool.getCurrentUser();
-  if (cognitoUser) {
-      cognitoUser.signOut(); // Cognito 세션 종료
-      console.log('사용자 로그아웃 성공');
+  if (cognitoUser != null) {
+    cognitoUser.signOut();
+    // 로컬 스토리지에서 토큰 삭제
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('idToken');
+    alert('로그아웃 되었습니다.');
+    window.location.href = 'login.html'; // 로그인 페이지로 이동
+  } else {
+    alert('로그인된 사용자가 없습니다.');
   }
-
-  // 로컬 스토리지 초기화
-  localStorage.removeItem('idToken');
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-
-  // 로그인 페이지로 리디렉션
-  window.location.href = 'login.html';
 }
 
 
