@@ -94,7 +94,7 @@ function populateUserProfile() {
 // 폼 제출 이벤트 연결
 function attachFormSubmitEvent() {
     const form = document.getElementById('profile-form');
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
         e.preventDefault(); // 기본 제출 동작 막기
 
         // 사용자 입력값 가져오기
@@ -116,8 +116,27 @@ function attachFormSubmitEvent() {
             user_github: userGithub,
         };
 
-        // 콘솔에 JSON 출력
-        console.log('사용자 프로필 데이터:', JSON.stringify(userProfile, null, 2));
-        alert('JSON 데이터가 콘솔에 출력되었습니다. 콘솔을 확인하세요.');
+        // API Gateway 호출
+        try {
+            const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile', { // API Gateway 엔드포인트로 변경
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+                },
+                body: JSON.stringify(userProfile),
+            });
+
+            if (!response.ok) {
+                throw new Error('API 호출 실패');
+            }
+
+            const result = await response.json();
+            console.log('저장된 데이터:', result);
+            alert('프로필이 성공적으로 저장되었습니다!');
+        } catch (error) {
+            console.error('API 호출 오류:', error);
+            alert('프로필 저장 중 오류가 발생했습니다.');
+        }
     });
 }
