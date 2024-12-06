@@ -16,8 +16,6 @@ async function fetchUserProfile() {
         console.log('가져온 사용자 데이터:', userProfile);
 
         // 폼 필드에 데이터 채우기 (하이픈 포함된 키는 대괄호 표기법 사용)
-        document.getElementById('user-name').value = userProfile.name || '';
-        document.getElementById('user-email').value = userProfile.email || '';
         document.getElementById('user-techstack').value = userProfile['user-techstack'] || ''; // 대괄호 표기법
         document.getElementById('user-project-preference').value = userProfile['user-project-preference'] || ''; // 대괄호 표기법
         document.getElementById('user-project-experience').value = userProfile['user-project-experience'] || ''; // 대괄호 표기법
@@ -28,7 +26,6 @@ async function fetchUserProfile() {
         alert('사용자 데이터를 가져오는 중 오류가 발생했습니다.');
     }
 }
-
 
 // 페이지 로드 시 실행
 window.onload = function () {
@@ -118,10 +115,16 @@ function populateUserProfile() {
                         userSub = attribute.Value; // sub 값을 저장
                         console.log('사용자 sub:', userSub);
                     }
+                    if (attribute.Name === 'name') {
+                        document.getElementById('user-name').value = attribute.Value || '';
+                    }
+                    if (attribute.Name === 'email') {
+                        document.getElementById('user-email').value = attribute.Value || '';
+                    }
                 });
 
                 // 사용자 속성 로드 후 fetchUserProfile 호출
-                fetchUserProfile(); // 여기에 호출
+                fetchUserProfile(); // API 호출
             });
         });
     } else {
@@ -129,7 +132,6 @@ function populateUserProfile() {
         window.location.href = 'login.html';
     }
 }
-
 
 // 폼 제출 이벤트 연결
 function attachFormSubmitEvent() {
