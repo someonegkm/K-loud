@@ -4,6 +4,7 @@ window.onload = function () {
     updateNavBar(); // 내비게이션 업데이트
     checkLoginStatus();
     requireLogin();
+    populateUserProfile(); // 사용자 프로필 채우기
     attachFormSubmitEvent(); // 폼 제출 이벤트 연결
 };
 
@@ -46,20 +47,10 @@ function requireLogin() {
     }
 }
 
-// 폼 제출 이벤트 연결
-function attachFormSubmitEvent() {
-    const form = document.getElementById('profile-form');
-    form.addEventListener('submit', function (e) {
-        e.preventDefault(); // 기본 제출 동작 막기
-
-        const cognitoUser = userPool.getCurrentUser();
-        if (!cognitoUser) {
-            alert('로그인이 필요합니다.');
-            window.location.href = 'login.html';
-            return;
-        }
-
-        // 세션 가져오기
+// 사용자 프로필 채우기
+function populateUserProfile() {
+    const cognitoUser = userPool.getCurrentUser();
+    if (cognitoUser) {
         cognitoUser.getSession(function (err, session) {
             if (err) {
                 console.error('세션 가져오기 오류:', err);
@@ -68,25 +59,65 @@ function attachFormSubmitEvent() {
             }
 
             console.log('세션이 성공적으로 가져와졌습니다.');
+            // 사용자 속성 가져오기
+            cognitoUser.getUserAttributes(function (err, attributes) {
+                if (err) {
+                    console.error('사용자 속성 가져오기 오류:', err);
+                    return;
+                }
 
-            // 입력된 프로필 데이터 가져오기
-            const updatedProfile = {
-                TechStack: document.getElementById('user-techstack').value.split(',').map(item => item.trim()),
-                Experience: parseInt(document.getElementById('user-experience').value, 10),
-                ProjectPreference: document.getElementById('user-project-preference').value.trim(),
-                ProjectExperience: parseInt(document.getElementById('user-project-experience').value, 10),
-                GithubURL: document.getElementById('user-github').value.trim()
-            };
+                // 사용자 속성을 가져온 후 필드 채우기
+                const nameField = document.getElementById('user-name');
+                const emailField = document.getElementById('user-email');
 
-            // 입력값 검증
-            if (!updatedProfile.TechStack.length || !updatedProfile.ProjectPreference) {
-                alert('기술 스택과 선호하는 프로젝트 유형은 필수 입력 사항입니다.');
-                return;
+                attributes.forEach(attribute => {
+                    if (attribute.Name === 'name') {
+                        nameField.value = attribute.Value; // 이름 필드 채우기
+                    } else if (attribute.Name === 'email') {
+                        emailField.value = attribute.Value; // 이메일 필드 채우기
+                    }
+                });
+            });
+        });
+    } else {
+        console.error('사용자가 로그인되지 않았습니다.');
+        window.location.href = 'login.html';
+    }
+}
+
+function attachFormSubmitEvent() {
+    const form = document.getElementById('profile-form');
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault(); // 기본 제출 동작 막기
+
+        const updatedProfile = {
+            TechStack: document.getElementById('user-techstack').value.split(',').map(item => item.trim()),
+            Experience: parseInt(document.getElementById('user-experience').value, 10),
+            ProjectPreference: document.getElementById('user-project-preference').value.trim(),
+            ProjectExperience: parseInt(document.getElementById('user-project-experience').value, 10),
+            GithubURL: document.getElementById('user-github').value.trim()
+        };
+
+        try {
+            const response = await fetch('https://ywris75rza.execute-api.ap-northeast-2.amazonaws.com/prod/save-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+                },
+                body: JSON.stringify(updatedProfile),
+            });
+
+            if (!response.ok) {
+                throw new Error('API 호출 실패');
             }
 
-            // 데이터 저장 로직 추가 가능 (예: 로컬 저장, 다른 처리 등)
-            console.log('저장할 데이터:', updatedProfile);
-            alert('프로필 데이터가 성공적으로 처리되었습니다!');
-        });
+            const result = await response.json();
+            alert('프로필이 성공적으로 저장되었습니다!');
+            console.log('저장된 데이터:', result);
+        } catch (error) {
+            console.error('API 호출 오류:', error);
+            alert('프로필 저장 중 오류가 발생했습니다.');
+        }
     });
 }
