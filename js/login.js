@@ -346,12 +346,25 @@ function signOut() {
   }
 }
 
+// 로그인 버튼 초기화
+function initializeLoginButton() {
+  const signinButton = document.getElementById('signin-button');
+  signinButton.textContent = '로그인'; // 버튼 텍스트 초기화
+  signinButton.onclick = null; // 기존 이벤트 제거
+  signinButton.addEventListener('click', login); // login 함수 연결
+}
+
+// 페이지 로드 시 초기화
+window.onload = function () {
+  initializeLoginButton(); // 로그인 버튼 초기화
+};
+
 
 function resetToLoginState() {
   const signinButton = document.getElementById('signin-button');
   signinButton.textContent = '로그인'; // 버튼 텍스트 복구
-  signinButton.onclick = null; // 기존 비밀번호 재설정 기능 제거
-  signinButton.addEventListener('click', login); // 로그인 기능 다시 연결
+  signinButton.onclick = null; // 기존 이벤트 제거
+  signinButton.addEventListener('click', login); // login 함수 다시 연결
 
   const forgotPasswordLink = document.getElementById('forgot-password-link');
   forgotPasswordLink.textContent = '비밀번호를 잊어버리셨나요?'; // 링크 텍스트 복구
@@ -388,7 +401,11 @@ function resetToLoginState() {
   // 에러 메시지 초기화
   const signinError = document.getElementById('signin-error');
   signinError.textContent = '';
+
+  // 로그인 버튼 다시 초기화
+  initializeLoginButton();
 }
+
 
 
 
