@@ -155,7 +155,15 @@
             </div>
             <div class="form-group">
               <label for="user-project-preference"><strong>선호하는 프로젝트 유형</strong></label>
-              <input type="text" class="form-control" id="user-project-preference" placeholder="예: AI, 웹 개발">
+              <select class="form-control" id="user-project-preference" name="user-project-preference" required>
+                  <option value="" disabled selected>프로젝트 유형을 선택하세요</option>
+                  <option value="AI">AI</option>
+                  <option value="Web Development">Web Development</option>
+                  <option value="Mobile App">Mobile App</option>
+                  <option value="Data Science">Data Science</option>
+                  <option value="DevOps">DevOps</option>
+                  <option value="Game Development">Game Development</option>
+              </select>
             </div>
             <div class="form-group">
               <label for="user-project-experience"><strong>프로젝트 경험 (프로젝트 수)</strong></label>

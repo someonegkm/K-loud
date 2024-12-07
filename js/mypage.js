@@ -70,7 +70,7 @@ async function fetchUserProfile() {
         document.getElementById('user-name').value = userProfile.name || '';
         document.getElementById('user-email').value = userProfile.email || '';
         document.getElementById('user-techstack').value = userProfile['user-techstack'] || '';
-        document.getElementById('user-project-preference').value = userProfile['user-project-preference'] || '';
+        document.getElementById('user-project-preference').value = userProfile['user-project-preference'] || ''; // `<select>` 값 설정
         document.getElementById('user-project-experience').value = userProfile['user-project-experience'] || '';
         document.getElementById('user-github').value = userProfile['user-github'] || '';
         document.getElementById('user-intro').value = userProfile['user-intro'] || '';
@@ -79,6 +79,7 @@ async function fetchUserProfile() {
         alert('사용자 데이터를 가져오는 중 오류가 발생했습니다.');
     }
 }
+
 
 // 사용자 프로젝트 데이터 가져오기
 async function fetchUserProjects() {
@@ -136,7 +137,7 @@ async function deleteProject(projectId) {
     }
 
     try {
-        const response = await fetch(`https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/createproject/${projectId}`, {
+        const response = await fetch(`https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/${projectId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -155,6 +156,53 @@ async function deleteProject(projectId) {
         alert('프로젝트를 삭제하는 중 오류가 발생했습니다.');
     }
 }
+
+function attachFormSubmitEvent() {
+    const form = document.getElementById('profile-form');
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault(); // 기본 제출 동작 막기
+
+        // 사용자 입력값 가져오기
+        const userProfile = {
+            UserID: userSub, // Cognito sub 값 사용
+            name: document.getElementById('user-name').value,
+            email: document.getElementById('user-email').value,
+            user_techstack: document.getElementById('user-techstack').value,
+            user_project_preference: document.getElementById('user-project-preference').value, // `<select>` 값 가져오기
+            user_project_experience: document.getElementById('user-project-experience').value,
+            user_github: document.getElementById('user-github').value,
+            user_intro: document.getElementById('user-intro').value,
+        };
+
+        try {
+            const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+                },
+                body: JSON.stringify(userProfile),
+            });
+
+            if (!response.ok) {
+                throw new Error('프로필 저장 중 문제가 발생했습니다.');
+            }
+
+            const result = await response.json();
+            console.log('저장된 데이터:', result);
+
+            // 저장 완료 알림
+            alert('프로필이 성공적으로 저장되었습니다!');
+
+            // 마이페이지로 이동
+            window.location.href = 'mypage.html'; // "마이페이지" URL
+        } catch (error) {
+            console.error('API 호출 오류:', error);
+            alert('프로필 저장 중 오류가 발생했습니다.');
+        }
+    });
+}
+
 
 
 // 페이지 로드 시 실행
