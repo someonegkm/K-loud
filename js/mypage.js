@@ -1,3 +1,54 @@
+let userSub = ''; // Cognito sub 값 저장
+let userId = '';  // 로그인 아이디 (username)
+
+function populateUserProfile() {
+    const cognitoUser = userPool.getCurrentUser();
+    if (!cognitoUser) {
+        alert('로그인이 필요합니다.');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    cognitoUser.getSession((err, session) => {
+        if (err || !session.isValid()) {
+            alert('세션이 유효하지 않습니다. 다시 로그인해주세요.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        console.log('세션이 성공적으로 가져와졌습니다.');
+        const idToken = session.getIdToken().getJwtToken();
+        localStorage.setItem('idToken', idToken);
+
+        // 사용자 ID 가져오기 (로그인 아이디)
+        userId = cognitoUser.getUsername();
+        console.log('로그인 아이디 (username):', userId);
+
+        cognitoUser.getUserAttributes((err, attributes) => {
+            if (err) {
+                console.error('사용자 속성 가져오기 오류:', err);
+                return;
+            }
+
+            attributes.forEach(attribute => {
+                console.log(`속성 이름: ${attribute.Name}, 속성 값: ${attribute.Value}`);
+                if (attribute.Name === 'sub') {
+                    userSub = attribute.Value; // sub 값 저장
+                    console.log('사용자 sub:', userSub);
+                }
+            });
+
+            // 사용자 속성 로드 후 데이터 가져오기
+            fetchUserProfile(); // 사용자 프로필 데이터 가져오기
+            fetchUserProjects(); // 사용자 프로젝트 데이터 가져오기
+        });
+    });
+}
+
+
+
+
+
 // 사용자 프로필 데이터 가져오기
 async function fetchUserProfile() {
     try {
@@ -15,26 +66,104 @@ async function fetchUserProfile() {
         const userProfile = await response.json();
         console.log('가져온 사용자 데이터:', userProfile);
 
-        // 폼 필드에 데이터 채우기 (하이픈 포함된 키는 대괄호 표기법 사용)
-        document.getElementById('user-techstack').value = userProfile['user-techstack'] || ''; // 대괄호 표기법
-        document.getElementById('user-project-preference').value = userProfile['user-project-preference'] || ''; // 대괄호 표기법
-        document.getElementById('user-project-experience').value = userProfile['user-project-experience'] || ''; // 대괄호 표기법
-        document.getElementById('user-github').value = userProfile['user-github'] || ''; // 대괄호 표기법
-        document.getElementById('user-intro').value = userProfile['user-intro'] || ''; // 대괄호 표기법
+        // 폼 필드에 데이터 채우기
+        document.getElementById('user-name').value = userProfile.name || '';
+        document.getElementById('user-email').value = userProfile.email || '';
+        document.getElementById('user-techstack').value = userProfile['user-techstack'] || '';
+        document.getElementById('user-project-preference').value = userProfile['user-project-preference'] || '';
+        document.getElementById('user-project-experience').value = userProfile['user-project-experience'] || '';
+        document.getElementById('user-github').value = userProfile['user-github'] || '';
+        document.getElementById('user-intro').value = userProfile['user-intro'] || '';
     } catch (error) {
         console.error('사용자 데이터 가져오기 오류:', error);
         alert('사용자 데이터를 가져오는 중 오류가 발생했습니다.');
     }
 }
 
+// 사용자 프로젝트 데이터 가져오기
+async function fetchUserProjects() {
+    try {
+        const response = await fetch(`https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/createproject?ownerId=${userId}`, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('사용자 프로젝트 데이터를 가져오지 못했습니다.');
+        }
+
+        const userProjects = await response.json();
+        console.log('가져온 프로젝트 데이터:', userProjects);
+
+        renderUserProjects(userProjects.data || []);
+    } catch (error) {
+        console.error('사용자 프로젝트 가져오기 오류:', error);
+        alert('프로젝트 데이터를 가져오는 중 오류가 발생했습니다.');
+    }
+}
+
+// 가져온 프로젝트 데이터를 화면에 렌더링
+function renderUserProjects(projects) {
+    const projectsContainer = document.getElementById('user-projects-container');
+    projectsContainer.innerHTML = ''; // 기존 내용 초기화
+
+    if (projects.length === 0) {
+        projectsContainer.innerHTML = '<p>등록된 프로젝트가 없습니다.</p>';
+        return;
+    }
+
+    projects.forEach(project => {
+        const projectElement = document.createElement('div');
+        projectElement.className = 'project-item'; // CSS 클래스 추가
+        projectElement.innerHTML = `
+            <h4>${project.projectName}</h4>
+            <p><strong>설명:</strong> ${project.projectDescription}</p>
+            <p><strong>기술 스택:</strong> ${project.techStack.join(', ')}</p>
+            <p><strong>유형:</strong> ${project.projectType}</p>
+            <p><strong>생성 일시:</strong> ${project.createdAt}</p>
+            <button class="btn btn-danger btn-sm" onclick="deleteProject('${project.projectId}')">삭제</button>
+        `;
+        projectsContainer.appendChild(projectElement);
+    });
+}
+
+// 프로젝트 삭제
+async function deleteProject(projectId) {
+    if (!confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
+        return; // 사용자가 취소를 선택한 경우
+    }
+
+    try {
+        const response = await fetch(`https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/${projectId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('프로젝트 삭제 중 문제가 발생했습니다.');
+        }
+
+        alert('프로젝트가 성공적으로 삭제되었습니다!');
+        fetchUserProjects(); // 삭제 후 프로젝트 목록 업데이트
+    } catch (error) {
+        console.error('프로젝트 삭제 오류:', error);
+        alert('프로젝트를 삭제하는 중 오류가 발생했습니다.');
+    }
+}
+
+
 // 페이지 로드 시 실행
 window.onload = function () {
     console.log('페이지 로드');
     updateNavBar(); // 내비게이션 업데이트
-    checkLoginStatus(); // 로그인 상태 확인
-    requireLogin(); // 로그인 상태 리디렉션
     populateUserProfile(); // 사용자 프로필 채우기
     attachFormSubmitEvent(); // 폼 제출 이벤트 연결
+    fetchUserProjects(); // 사용자 프로젝트 가져오기
 };
 
 // 내비게이션 바 업데이트 함수
@@ -43,7 +172,6 @@ function updateNavBar() {
     const loginLogoutLink = document.getElementById('login-logout-link');
 
     if (cognitoUser) {
-        // 로그인된 경우: 로그아웃 링크 표시
         loginLogoutLink.textContent = '로그아웃';
         loginLogoutLink.href = '#';
         loginLogoutLink.onclick = function () {
@@ -51,136 +179,8 @@ function updateNavBar() {
             window.location.href = 'login.html';
         };
     } else {
-        // 로그인되지 않은 경우: 로그인 링크 표시
         loginLogoutLink.textContent = '로그인';
         loginLogoutLink.href = 'login.html';
         loginLogoutLink.onclick = null;
     }
-}
-
-// 로그인 상태 확인 함수
-function checkLoginStatus() {
-    const cognitoUser = userPool.getCurrentUser();
-    if (!cognitoUser) {
-        console.error('로그인되지 않은 사용자');
-        window.location.href = 'login.html';
-    }
-}
-
-// 로그인 리디렉션 함수
-function requireLogin() {
-    const cognitoUser = userPool.getCurrentUser();
-    if (!cognitoUser) {
-        console.error('로그인이 필요합니다.');
-        window.location.href = 'login.html';
-    }
-}
-
-// 사용자 프로필 채우기
-let userSub = ''; // Cognito sub 값을 저장할 변수
-
-function populateUserProfile() {
-    const cognitoUser = userPool.getCurrentUser();
-    if (cognitoUser) {
-        cognitoUser.getSession(function (err, session) {
-            if (err) {
-                console.error('세션 가져오기 오류:', err);
-                alert('세션을 가져오는 중 오류가 발생했습니다.');
-                return;
-            }
-
-            console.log('세션이 성공적으로 가져와졌습니다.');
-
-            // ID 토큰 가져오기
-            if (session.isValid()) {
-                const idToken = session.getIdToken().getJwtToken();
-                console.log("ID Token:", idToken);
-                localStorage.setItem('idToken', idToken);
-            } else {
-                console.error("세션이 유효하지 않습니다.");
-                alert("세션이 유효하지 않습니다. 다시 로그인해주세요.");
-                window.location.href = 'login.html';
-                return;
-            }
-
-            // 사용자 속성 가져오기
-            cognitoUser.getUserAttributes(function (err, attributes) {
-                if (err) {
-                    console.error('사용자 속성 가져오기 오류:', err);
-                    return;
-                }
-
-                attributes.forEach(attribute => {
-                    if (attribute.Name === 'sub') {
-                        userSub = attribute.Value; // sub 값을 저장
-                        console.log('사용자 sub:', userSub);
-                    }
-                    if (attribute.Name === 'name') {
-                        document.getElementById('user-name').value = attribute.Value || '';
-                    }
-                    if (attribute.Name === 'email') {
-                        document.getElementById('user-email').value = attribute.Value || '';
-                    }
-                });
-
-                // 사용자 속성 로드 후 fetchUserProfile 호출
-                fetchUserProfile(); // API 호출
-            });
-        });
-    } else {
-        console.error('사용자가 로그인되지 않았습니다.');
-        window.location.href = 'login.html';
-    }
-}
-
-// 폼 제출 이벤트 연결
-function attachFormSubmitEvent() {
-    const form = document.getElementById('profile-form');
-    form.addEventListener('submit', async function (e) {
-        e.preventDefault(); // 기본 제출 동작 막기
-
-        // 사용자 입력값 가져오기
-        const name = document.getElementById('user-name').value;
-        const email = document.getElementById('user-email').value;
-        const userTechStack = document.getElementById('user-techstack').value;
-        const userProjectPreference = document.getElementById('user-project-preference').value;
-        const userProjectExperience = document.getElementById('user-project-experience').value;
-        const userGithub = document.getElementById('user-github').value;
-        const userIntro = document.getElementById('user-intro').value; // 자기 소개 필드 추가
-
-        // JSON 형식으로 데이터 생성
-        const userProfile = {
-            UserID: userSub, // Cognito sub 값 사용
-            name: name,
-            email: email,
-            user_techstack: userTechStack,
-            user_project_preference: userProjectPreference,
-            user_project_experience: userProjectExperience,
-            user_github: userGithub,
-            user_intro: userIntro, // 자기 소개 추가
-        };
-
-        // API Gateway 호출
-        try {
-            const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
-                },
-                body: JSON.stringify(userProfile),
-            });
-
-            if (!response.ok) {
-                throw new Error('API 호출 실패');
-            }
-
-            const result = await response.json();
-            console.log('저장된 데이터:', result);
-            alert('프로필이 성공적으로 저장되었습니다!');
-        } catch (error) {
-            console.error('API 호출 오류:', error);
-            alert('프로필 저장 중 오류가 발생했습니다.');
-        }
-    });
 }

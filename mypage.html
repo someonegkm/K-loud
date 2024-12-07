@@ -94,50 +94,88 @@
   <section class="profile-section">
     <div class="container">
       <div class="heading_container heading_center">
-        <h2>
-          마이페이지
-        </h2>
+        <h2>마이페이지</h2>
       </div>
-
-      <div class="profile-card">
-        <form id="profile-form">
+  
+      <!-- 탭 메뉴 -->
+      <div class="tabs">
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a class="nav-link active" id="my-projects-tab" data-toggle="tab" href="#my-projects" role="tab">내 프로젝트</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="participated-projects-tab" data-toggle="tab" href="#participated-projects" role="tab">참여한 프로젝트</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="favorite-projects-tab" data-toggle="tab" href="#favorite-projects" role="tab">관심 프로젝트</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="profile-edit-tab" data-toggle="tab" href="#profile-edit" role="tab">회원정보 수정</a>
+          </li>
+        </ul>
+      </div>
+  
+      <!-- 탭 내용 -->
+      <div class="tab-content">
+        <!-- 내 프로젝트 -->
+        <div class="tab-pane fade show active" id="my-projects" role="tabpanel" aria-labelledby="my-projects-tab">
+          <h3>내 프로젝트</h3>
+          <div id="user-projects-container">
+            <!-- 프로젝트 목록이 여기에 동적으로 추가됩니다 -->
+        </div>
+        </div>
+  
+        <!-- 참여한 프로젝트 -->
+        <div class="tab-pane fade" id="participated-projects" role="tabpanel" aria-labelledby="participated-projects-tab">
+          <h3>참여한 프로젝트</h3>
+          <p>여기에 사용자가 참여한 프로젝트 목록을 표시합니다.</p>
+        </div>
+  
+        <!-- 관심 프로젝트 -->
+        <div class="tab-pane fade" id="favorite-projects" role="tabpanel" aria-labelledby="favorite-projects-tab">
+          <h3>관심 프로젝트</h3>
+          <p>여기에 사용자가 관심 등록한 프로젝트 목록을 표시합니다.</p>
+        </div>
+  
+        <!-- 회원정보 수정 -->
+        <div class="tab-pane fade" id="profile-edit" role="tabpanel" aria-labelledby="profile-edit-tab">
+          <h3>회원정보 수정</h3>
+          <form id="profile-form">
             <div class="form-group">
-                <label for="user-name"><strong>이름</strong></label>
-                <!-- 수정 불가능하게 readonly 속성 추가 -->
-                <input type="text" class="form-control" id="user-name" readonly>
+              <label for="user-name"><strong>이름</strong></label>
+              <input type="text" class="form-control" id="user-name" readonly>
             </div>
             <div class="form-group">
-                <label for="user-email"><strong>Email</strong></label>
-                <!-- 수정 불가능하게 readonly 속성 추가 -->
-                <input type="email" class="form-control" id="user-email" readonly>
+              <label for="user-email"><strong>Email</strong></label>
+              <input type="email" class="form-control" id="user-email" readonly>
             </div>
             <div class="form-group">
               <label for="user-techstack"><strong>기술 스택</strong></label>
               <input type="text" class="form-control" id="user-techstack" placeholder="콤마로 구분 (예: Python, AWS)">
             </div>
             <div class="form-group">
-                <label for="user-project-preference"><strong>선호하는 프로젝트 유형</strong></label>
-                <input type="text" class="form-control" id="user-project-preference" placeholder="예: AI, 웹 개발">
+              <label for="user-project-preference"><strong>선호하는 프로젝트 유형</strong></label>
+              <input type="text" class="form-control" id="user-project-preference" placeholder="예: AI, 웹 개발">
             </div>
             <div class="form-group">
-                <label for="user-project-experience"><strong>프로젝트 경험 (프로젝트 수)</strong></label>
-                <input type="number" class="form-control" id="user-project-experience" min="0">
+              <label for="user-project-experience"><strong>프로젝트 경험 (프로젝트 수)</strong></label>
+              <input type="number" class="form-control" id="user-project-experience" min="0">
             </div>
             <div class="form-group">
-                <label for="user-github"><strong>GitHub 링크</strong></label>
-                <input type="url" class="form-control" id="user-github" placeholder="https://github.com/username">
+              <label for="user-github"><strong>GitHub 링크</strong></label>
+              <input type="url" class="form-control" id="user-github" placeholder="https://github.com/username">
             </div>
-            <!-- 자기 소개 추가 -->
             <div class="form-group">
-                <label for="user-intro"><strong>자기 소개</strong></label>
-                <textarea class="form-control" id="user-intro" rows="4" placeholder="자기 소개를 입력하세요."></textarea>
+              <label for="user-intro"><strong>자기 소개</strong></label>
+              <textarea class="form-control" id="user-intro" rows="4" placeholder="자기 소개를 입력하세요."></textarea>
             </div>
-          <button type="submit" class="btn btn-primary">저장</button>
-        </form>
-    </div>
-    
+            <button type="submit" class="btn btn-primary">저장</button>
+          </form>
+        </div>
+      </div>
     </div>
   </section>
+  
   <!-- 마이페이지 내용 끝 -->
 
   <!-- Info Section -->
