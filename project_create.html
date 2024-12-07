@@ -97,87 +97,52 @@
 
   <!-- service section -->
 
-  <section class="service_section layout_padding">
-    <div class="service_container">
-      <div class="container ">
-        <div class="heading_container heading_center">
-          <h2>
-            Our <span>Services</span>
-          </h2>
-          <p>
-            There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration
-          </p>
-        </div>
-        <div class="row">
-          <div class="col-md-4 ">
-            <div class="box ">
-              <div class="img-box">
-                <img src="images/s1.png" alt="">
-              </div>
-              <div class="detail-box">
-                <h5>
-                  Currency Wallet
-                </h5>
-                <p>
-                  fact that a reader will be distracted by the readable content of a page when looking at its layout.
-                  The
-                  point of using
-                </p>
-                <a href="">
-                  Read More
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4 ">
-            <div class="box ">
-              <div class="img-box">
-                <img src="images/s2.png" alt="">
-              </div>
-              <div class="detail-box">
-                <h5>
-                  Security Storage
-                </h5>
-                <p>
-                  fact that a reader will be distracted by the readable content of a page when looking at its layout.
-                  The
-                  point of using
-                </p>
-                <a href="">
-                  Read More
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4 ">
-            <div class="box ">
-              <div class="img-box">
-                <img src="images/s3.png" alt="">
-              </div>
-              <div class="detail-box">
-                <h5>
-                  Expert Support
-                </h5>
-                <p>
-                  fact that a reader will be distracted by the readable content of a page when looking at its layout.
-                  The
-                  point of using
-                </p>
-                <a href="">
-                  Read More
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="btn-box">
-          <a href="">
-            View All
-          </a>
-        </div>
+  <section class="project_create_section layout_padding">
+    <div class="container">
+      <div class="heading_container heading_center">
+        <h2>프로젝트 만들기</h2>
+        <p>새로운 프로젝트를 만들고 정보를 입력하세요.</p>
       </div>
+      <form id="projectForm" class="project_form">
+        <div class="form-group">
+          <label for="projectName">프로젝트 방 이름</label>
+          <input type="text" class="form-control" id="projectName" name="projectName" placeholder="프로젝트 방 이름을 입력하세요" required>
+        </div>
+        <div class="form-group">
+          <label for="projectDescription">프로젝트 방 설명</label>
+          <textarea class="form-control" id="projectDescription" name="projectDescription" rows="4" placeholder="프로젝트 방 설명을 입력하세요" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="ownerId">방장 사용자 ID</label>
+          <input type="text" class="form-control" id="ownerId" name="ownerId" readonly>
+        </div>
+        <div class="form-group">
+          <label for="techStack">필요한 기술 스택 목록</label>
+          <input type="text" class="form-control" id="techStack" name="techStack" placeholder="예: JavaScript, Python, React" required>
+        </div>
+        <div class="form-group">
+          <label for="projectType">프로젝트 유형</label>
+          <select class="form-control" id="projectType" name="projectType" required>
+            <option value="" disabled selected>프로젝트 유형을 선택하세요</option>
+            <option value="AI">AI</option>
+            <option value="Web Development">Web Development</option>
+            <option value="Mobile App">Mobile App</option>
+            <option value="Data Science">Data Science</option>
+            <option value="DevOps">DevOps</option>
+            <option value="Game Development">Game Development</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="minExperience">최소 프로젝트 경험 (년)</label>
+          <input type="number" class="form-control" id="minExperience" name="minExperience" placeholder="숫자로 입력하세요" min="0" required>
+        </div>
+        <div class="form-group text-center">
+          <button type="button" id="saveProjectButton" class="btn btn-primary">프로젝트 만들기</button>
+        </div>
+      </form>
     </div>
   </section>
+  
 
   <!-- end service section -->
 
@@ -293,6 +258,7 @@
       <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
       <!-- JavaScript 파일 연결 -->
       <script src="js/cognito.js"></script>
+      <script src="js/project_create.js"></script>
     
       <!-- 페이지 보호를 위한 스크립트 -->
       <script>
