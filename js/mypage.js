@@ -136,7 +136,7 @@ async function deleteProject(projectId) {
     }
 
     try {
-        const response = await fetch(`https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/${projectId}`, {
+        const response = await fetch(`https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/createproject/${projectId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
