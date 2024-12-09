@@ -990,8 +990,6 @@ a:focus {
   background-color: #007fa4;
 }
 
-
-
 /* Responsive Adjustments (Optional) */
 @media (max-width: 768px) {
   .profile-card {
@@ -1019,6 +1017,102 @@ a:focus {
   .btn-primary {
     padding: 8px 20px;
   }
+}
+.project-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd; /* 구분선 */
+}
+
+.project-item:last-child {
+  border-bottom: none; /* 마지막 항목에는 구분선 제거 */
+}
+
+.project-card {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px; /* 카드 간격 */
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #ddd; /* 구분선 색상 */
+  margin: 10px 0; /* 위아래 여백 */
+  width: 100%; /* 전체 너비 */
+}
+
+/* 팝업 배경 */
+#project-popup {
+  display: none; /* 기본적으로 숨김 */
+  position: fixed; /* 화면에 고정 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+  z-index: 1000; /* 다른 요소 위에 표시 */
+  display: flex; /* 중앙 정렬을 위한 flexbox */
+  justify-content: center; /* 수평 중앙 정렬 */
+  align-items: center; /* 수직 중앙 정렬 */
+}
+
+/* 팝업 내용 */
+#project-popup > div {
+  background-color: white;
+  padding: 30px; /* 내부 여백 증가 */
+  border-radius: 10px;
+  max-width: 600px; /* 최대 너비 증가 */
+  width: 80%; /* 폭 조정 */
+  min-height: 300px; /* 최소 높이 설정 */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  position: relative; /* 닫기 버튼 위치 설정 */
+  transform: translate(-50%, -50%);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+
+/* 닫기 버튼 */
+#project-popup > div h3 {
+  margin-top: 0;
+  margin-bottom: 20px; /* 제목 아래 간격 추가 */
+  font-size: 24px; /* 제목 크기 */
+  font-weight: bold;
+}
+
+#close-popup {
+  position: absolute;
+  top: 10px; /* 닫기 버튼과 팝업 상단 간격 */
+  right: 10px; /* 닫기 버튼과 팝업 오른쪽 간격 */
+  background-color: transparent;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+}
+
+/* 닫기 버튼 hover 효과 */
+#close-popup:hover {
+  color: #ff0000; /* 빨간색 강조 */
+}
+
+/* 팝업 내부 버튼 */
+#apply-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+#apply-button:hover {
+  background-color: #0056b3;
 }
 
 /* End of style.css */
