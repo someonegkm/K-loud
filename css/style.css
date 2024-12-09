@@ -1115,4 +1115,32 @@ a:focus {
   background-color: #0056b3;
 }
 
+/* 역할 버튼 스타일 */
+.roles-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.role-button {
+  padding: 10px 20px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.role-button:hover {
+  background-color: #e0e0e0;
+}
+
+.role-button.active {
+  border-color: #007bff;
+  background-color: #007bff;
+  color: white;
+}
+
+
 /* End of style.css */

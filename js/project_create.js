@@ -18,16 +18,21 @@ function formatDate(date) {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-// 필요한 역할 수집 함수
+// 필요한 역할 수집 함수 (선택된 버튼의 데이터-role 속성 값 수집)
 function getSelectedRoles() {
     const selectedRoles = [];
-    document.querySelectorAll('#user-roles .form-check-input').forEach((checkbox) => {
-        if (checkbox.checked) {
-            selectedRoles.push(checkbox.value);
-        }
+    document.querySelectorAll('.role-button.active').forEach((button) => {
+        selectedRoles.push(button.getAttribute('data-role'));
     });
     return selectedRoles;
 }
+
+// 역할 버튼 클릭 이벤트 추가
+document.querySelectorAll('.role-button').forEach((button) => {
+    button.addEventListener('click', () => {
+        button.classList.toggle('active'); // 활성화 상태 토글
+    });
+});
 
 // 방 저장하기 버튼 클릭 이벤트
 document.getElementById('saveProjectButton').addEventListener('click', async function() {

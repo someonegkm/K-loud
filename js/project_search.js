@@ -7,7 +7,13 @@ const popupTechStack = document.getElementById('popup-techstack');
 const popupType = document.getElementById('popup-type');
 const popupCreated = document.getElementById('popup-created');
 const applyButton = document.getElementById('apply-button');
+const applicationSection = document.getElementById('application-section');
+const applicationRoles = document.getElementById('application-roles');
+const applicationNote = document.getElementById('application-note');
+const submitApplicationButton = document.getElementById('submit-application');
 
+// 전역 변수
+let currentSelectedProject = null; // 현재 선택된 프로젝트
 const API_URL = 'https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/getproject';
 
 // 데이터 가져오기
@@ -28,6 +34,24 @@ async function fetchProjects() {
     }
 }
 
+// 로그인 상태 확인 함수 추가
+function ensureLoggedIn(actionCallback) {
+    const cognitoUser = userPool.getCurrentUser();
+    if (cognitoUser) {
+        cognitoUser.getSession((err, session) => {
+            if (err || !session.isValid()) {
+                alert('로그인이 필요합니다.');
+                window.location.href = 'login.html'; // 로그인 페이지로 리디렉션
+            } else {
+                actionCallback(); // 로그인이 유효한 경우 콜백 실행
+            }
+        });
+    } else {
+        alert('로그인이 필요합니다.');
+        window.location.href = 'login.html'; // 로그인 페이지로 리디렉션
+    }
+}
+
 // 팝업 열기
 function openProjectPopup(project) {
     if (!project) {
@@ -36,8 +60,8 @@ function openProjectPopup(project) {
         return;
     }
 
-    // 팝업에 데이터를 표시
-    console.log("열리는 프로젝트 데이터:", project);
+    currentSelectedProject = project;
+
     popupTitle.textContent = project.projectName || '프로젝트 이름 없음';
     popupDescription.textContent = project.projectDescription || '설명이 없습니다.';
     popupTechStack.textContent = project.techStack ? project.techStack.join(', ') : '기술 스택 없음';
@@ -45,37 +69,109 @@ function openProjectPopup(project) {
     popupCreated.textContent = project.createdAt || '생성 날짜 없음';
 
     popup.style.display = 'block';
+
+    // 초기화
+    applicationSection.style.display = 'none'; // 지원 영역 숨김
+    resetApplicationForm();
 }
 
-// 팝업 닫기
-closePopup.onclick = () => {
-    popup.style.display = 'none';
+// "지원하기" 버튼 클릭 이벤트
+applyButton.onclick = () => {
+    ensureLoggedIn(() => {
+        if (!currentSelectedProject) {
+            alert('프로젝트 데이터를 불러올 수 없습니다. 다시 시도해주세요.');
+            return;
+        }
+        // 지원 영역 열기
+        applicationSection.style.display = 'block';
+    });
 };
 
+// "지원 제출" 버튼 클릭 이벤트
+submitApplicationButton.addEventListener('click', () => {
+    if (!currentSelectedProject) {
+        alert('프로젝트 데이터를 불러올 수 없습니다. 다시 시도해주세요.');
+        return;
+    }
+
+    const activeButton = document.querySelector('.role-button.active');
+    const selectedRole = activeButton ? activeButton.getAttribute('data-role') : null;
+    const applicationNoteValue = applicationNote.value.trim();
+
+    if (!selectedRole || !applicationNoteValue) {
+        alert('지원 유형과 지원서를 모두 작성해주세요.');
+        return;
+    }
+
+    console.log('지원 제출 데이터:', {
+        project: currentSelectedProject,
+        role: selectedRole,
+        note: applicationNoteValue,
+    });
+
+    alert('지원이 완료되었습니다!');
+    popup.style.display = 'none';
+    resetApplicationForm();
+});
+
+// 지원 양식 초기화
+function resetApplicationForm() {
+    const roleButtons = document.querySelectorAll('.role-button');
+    roleButtons.forEach((button) => button.classList.remove('active'));
+    applicationNote.value = '';
+}
+
+// 버튼 활성화 토글 (하나만 선택 가능)
+applicationRoles.addEventListener('click', (event) => {
+    const clickedButton = event.target;
+    if (clickedButton.classList.contains('role-button')) {
+        const roleButtons = document.querySelectorAll('.role-button');
+        roleButtons.forEach((button) => button.classList.remove('active'));
+        clickedButton.classList.add('active');
+    }
+});
+
+// 팝업 닫기
+closePopup.addEventListener('click', () => {
+    popup.style.display = 'none';
+});
+
 // 바깥 클릭 시 팝업 닫기
-window.onclick = (event) => {
+window.addEventListener('click', (event) => {
     if (event.target === popup) {
         popup.style.display = 'none';
     }
-};
+});
 
-// 프로젝트 렌더링
+// 프로젝트 카드 클릭 이벤트 추가 함수
+function addProjectCardListeners(projectCards, projects) {
+    projectCards.forEach((card) => {
+        if (card instanceof HTMLElement) { // card가 DOM 요소인지 확인
+            const index = card.getAttribute('data-index');
+            card.addEventListener('click', () => openProjectPopup(projects[index]));
+        } else {
+            console.error('올바르지 않은 카드 요소:', card);
+        }
+    });
+}
+
 function renderProjects(projects) {
-    console.log("전체 프로젝트 데이터:", projects);
+    console.log('렌더링할 프로젝트 데이터:', projects); // 프로젝트 데이터 확인
 
-    // 각각의 컨테이너 초기화
     const frontendContainer = document.getElementById('frontend-projects');
     const backendContainer = document.getElementById('backend-projects');
     const designContainer = document.getElementById('design-projects');
     const planningContainer = document.getElementById('planning-projects');
 
+    // 각 카테고리 컨테이너 초기화
     frontendContainer.innerHTML = '';
     backendContainer.innerHTML = '';
     designContainer.innerHTML = '';
     planningContainer.innerHTML = '';
 
+    // 프로젝트 카드 생성
     projects.forEach((project, index) => {
-        console.log('현재 프로젝트 데이터:', project);
+        console.log('현재 프로젝트 데이터:', project); // 각 프로젝트 데이터 확인
 
         const projectCard = `
             <div class="project-card" data-index="${index}">
@@ -85,7 +181,6 @@ function renderProjects(projects) {
             </div>
         `;
 
-        // 프로젝트 역할에 따라 각 탭에 추가
         if (project.roles.includes('frontend')) {
             frontendContainer.innerHTML += projectCard;
         }
@@ -100,18 +195,53 @@ function renderProjects(projects) {
         }
     });
 
-    // 카드에 클릭 이벤트 추가
-    const projectCards = document.querySelectorAll('.project-card');
-    projectCards.forEach((card) => {
-        const index = card.getAttribute('data-index');
-        console.log('이벤트 연결 - 프로젝트 인덱스:', index);
-        card.addEventListener('click', () => openProjectPopup(projects[index]));
-    });
+    // DOM에 반영된 후에 카드 요소 가져오기
+    const frontendCards = Array.from(frontendContainer.querySelectorAll('.project-card'));
+    const backendCards = Array.from(backendContainer.querySelectorAll('.project-card'));
+    const designCards = Array.from(designContainer.querySelectorAll('.project-card'));
+    const planningCards = Array.from(planningContainer.querySelectorAll('.project-card'));
+
+    // 이벤트 리스너 등록
+    addProjectCardListeners(frontendCards, projects);
+    addProjectCardListeners(backendCards, projects);
+    addProjectCardListeners(designCards, projects);
+    addProjectCardListeners(planningCards, projects);
 }
 
 
+// 프로젝트 카드 클릭 이벤트 수정
+function openProjectPopup(project) {
+    ensureLoggedIn(() => {
+        if (!project) {
+            console.error('잘못된 프로젝트 데이터:', project);
+            alert('프로젝트 데이터를 불러올 수 없습니다.');
+            return;
+        }
+
+        // 현재 선택된 프로젝트 저장
+        currentSelectedProject = project;
+
+        popupTitle.textContent = project.projectName || '프로젝트 이름 없음';
+        popupDescription.textContent = project.projectDescription || '설명이 없습니다.';
+        popupTechStack.textContent = project.techStack ? project.techStack.join(', ') : '기술 스택 없음';
+        popupType.textContent = project.projectType || '유형 없음';
+        popupCreated.textContent = project.createdAt || '생성 날짜 없음';
+
+        // 팝업 표시
+        popup.style.display = 'block';
+
+        // 초기화
+        applicationSection.style.display = 'none'; // 지원 영역 숨김
+        resetApplicationForm(); // 지원 양식 초기화
+    });
+}
+
+// 탭 변경 이벤트 처리
+document.querySelectorAll('.nav-link').forEach((tab) => {
+    tab.addEventListener('shown.bs.tab', () => {
+        fetchProjects(); // 탭 전환 시 데이터 가져오기
+    });
+});
+
 // 페이지 로드 시 실행
-window.onload = function () {
-    console.log('페이지 로드');
-    fetchProjects();
-};
+window.onload = fetchProjects;
