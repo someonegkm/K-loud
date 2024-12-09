@@ -18,6 +18,17 @@ function formatDate(date) {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
+// 필요한 역할 수집 함수
+function getSelectedRoles() {
+    const selectedRoles = [];
+    document.querySelectorAll('#user-roles .form-check-input').forEach((checkbox) => {
+        if (checkbox.checked) {
+            selectedRoles.push(checkbox.value);
+        }
+    });
+    return selectedRoles;
+}
+
 // 방 저장하기 버튼 클릭 이벤트
 document.getElementById('saveProjectButton').addEventListener('click', async function() {
     // 입력된 값 가져오기
@@ -27,6 +38,9 @@ document.getElementById('saveProjectButton').addEventListener('click', async fun
     const techStack = document.getElementById('techStack').value;
     const projectType = document.getElementById('projectType').value;
     const minExperience = document.getElementById('minExperience').value;
+
+    // 선택된 필요한 역할 가져오기
+    const roles = getSelectedRoles();
 
     // 생성 일시와 고유 ID 추가
     const now = new Date();
@@ -42,6 +56,7 @@ document.getElementById('saveProjectButton').addEventListener('click', async fun
         techStack: techStack.split(',').map(s => s.trim()),
         projectType: projectType,
         minExperience: parseInt(minExperience, 10),
+        roles: roles, // 선택된 역할 추가
         createdAt: formattedDate,
     };
 

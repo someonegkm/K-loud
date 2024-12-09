@@ -136,6 +136,35 @@
           <label for="minExperience">최소 프로젝트 경험 (년)</label>
           <input type="number" class="form-control" id="minExperience" name="minExperience" placeholder="숫자로 입력하세요" min="0" required>
         </div>
+        <div class="form-group">
+          <label for="user-roles"><strong>필요한 역할</strong></label>
+          <div id="user-roles">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="frontend" id="role-frontend">
+              <label class="form-check-label" for="role-frontend">
+                프론트엔드
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="backend" id="role-backend">
+              <label class="form-check-label" for="role-backend">
+                백엔드
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="design" id="role-design">
+              <label class="form-check-label" for="role-design">
+                디자인
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="pm" id="role-pm">
+              <label class="form-check-label" for="role-pm">
+                기획
+              </label>
+            </div>
+          </div>
+        </div>
         <div class="form-group text-center">
           <button type="button" id="saveProjectButton" class="btn btn-primary">프로젝트 만들기</button>
         </div>
@@ -254,20 +283,20 @@
   </section>
   <!-- footer section -->
 
-      <!-- AWS Cognito JavaScript SDK -->
-      <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
-      <!-- JavaScript 파일 연결 -->
-      <script src="js/cognito.js"></script>
-      <script src="js/project_create.js"></script>
-    
-      <!-- 페이지 보호를 위한 스크립트 -->
-      <script>
-        // 페이지 로딩 시 로그인 상태 확인 및 리디렉션
-        window.onload = function() {
-          checkLoginStatus();
-          requireLogin(); // 로그인 상태가 아닌 경우 로그인 페이지로 리디렉션
-        };
-      </script>
+    <!-- AWS Cognito JavaScript SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
+    <!-- JavaScript 파일 연결 -->
+    <script src="js/cognito.js"></script>
+    <script src="js/project_create.js"></script>
+  
+    <!-- 페이지 보호를 위한 스크립트 -->
+    <script>
+      // 페이지 로딩 시 로그인 상태 확인 및 리디렉션
+      window.onload = function() {
+        checkLoginStatus();
+        requireLogin(); // 로그인 상태가 아닌 경우 로그인 페이지로 리디렉션
+      };
+    </script>
 
   <!-- jQery -->
   <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
