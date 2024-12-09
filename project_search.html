@@ -96,44 +96,61 @@
 
   <!-- about section -->
 
-  <section class="about_section layout_padding">
-    <div class="container  ">
+  <section class="project-category-section">
+    <div class="container">
       <div class="heading_container heading_center">
-        <h2>
-          About <span>Us</span>
-        </h2>
-        <p>
-          Magni quod blanditiis non minus sed aut voluptatum illum quisquam aspernatur ullam vel beatae rerum ipsum voluptatibus
-        </p>
+        <h2>프로젝트 찾기</h2>
       </div>
-      <div class="row">
-        <div class="col-md-6 ">
-          <div class="img-box">
-            <img src="images/about-img.png" alt="">
-          </div>
+  
+      <!-- 카테고리 탭 -->
+      <ul class="nav nav-tabs justify-content-center" id="projectCategoryTabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="frontend-tab" data-toggle="tab" href="#frontend" role="tab" aria-controls="frontend" aria-selected="true">
+            프론트엔드
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="backend-tab" data-toggle="tab" href="#backend" role="tab" aria-controls="backend" aria-selected="false">
+            백엔드
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="design-tab" data-toggle="tab" href="#design" role="tab" aria-controls="design" aria-selected="false">
+            디자인
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="planning-tab" data-toggle="tab" href="#planning" role="tab" aria-controls="planning" aria-selected="false">
+            기획
+          </a>
+        </li>
+      </ul>
+  
+      <!-- 탭 내용 -->
+      <div class="tab-content" id="projectCategoryContent">
+        <!-- 프론트엔드 탭 -->
+        <div class="tab-pane fade show active" id="frontend" role="tabpanel" aria-labelledby="frontend-tab">
+          <div id="frontend-projects" class="category-content"></div>
         </div>
-        <div class="col-md-6">
-          <div class="detail-box">
-            <h3>
-              We Are Finexo
-            </h3>
-            <p>
-              There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration
-              in some form, by injected humour, or randomised words which don't look even slightly believable. If you
-              are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in
-              the middle of text. All
-            </p>
-            <p>
-              Molestiae odio earum non qui cumque provident voluptates, repellendus exercitationem, possimus at iste corrupti officiis unde alias eius ducimus reiciendis soluta eveniet. Nobis ullam ab omnis quasi expedita.
-            </p>
-            <a href="">
-              Read More
-            </a>
-          </div>
+  
+        <!-- 백엔드 탭 -->
+        <div class="tab-pane fade" id="backend" role="tabpanel" aria-labelledby="backend-tab">
+          <div id="backend-projects" class="category-content"></div>
+        </div>
+  
+        <!-- 디자인 탭 -->
+        <div class="tab-pane fade" id="design" role="tabpanel" aria-labelledby="design-tab">
+          <div id="design-projects" class="category-content"></div>
+        </div>
+  
+        <!-- 기획 탭 -->
+        <div class="tab-pane fade" id="planning" role="tabpanel" aria-labelledby="planning-tab">
+          <div id="planning-projects" class="category-content"></div>
         </div>
       </div>
     </div>
   </section>
+  
 
   <!-- end about section -->
 
@@ -248,6 +265,7 @@
     <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
     <!-- JavaScript 파일 연결 -->
     <script src="js/cognito.js"></script>
+    <script src="js/project_search.js"></script>
   
     <!-- 페이지 보호를 위한 스크립트 -->
     <script>
