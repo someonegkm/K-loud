@@ -16,6 +16,32 @@ const submitApplicationButton = document.getElementById('submit-application');
 let currentSelectedProject = null; // 현재 선택된 프로젝트
 const API_URL = 'https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/getproject';
 
+// WebSocket 연결
+let ws;
+
+function connectWebSocket() {
+    const wsUrl = 'wss://tt2qh0upm2.execute-api.ap-northeast-2.amazonaws.com/prod/'; // WebSocket API Gateway URL
+    ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+        console.log('WebSocket 연결 성공');
+    };
+
+    ws.onmessage = (event) => {
+        console.log('서버로부터 받은 메시지:', event.data);
+        // 받은 알림 데이터를 처리하거나 화면에 표시
+        alert('새 알림: ' + event.data);
+    };
+
+    ws.onclose = () => {
+        console.log('WebSocket 연결 종료');
+    };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket 에러:', error);
+    };
+}
+
 // 데이터 가져오기
 async function fetchProjects() {
     try {
@@ -87,27 +113,28 @@ applyButton.onclick = () => {
     });
 };
 
-// "지원 제출" 버튼 클릭 이벤트
+// 지원 제출 버튼 클릭 이벤트
 submitApplicationButton.addEventListener('click', () => {
-    if (!currentSelectedProject) {
-        alert('프로젝트 데이터를 불러올 수 없습니다. 다시 시도해주세요.');
-        return;
-    }
-
     const activeButton = document.querySelector('.role-button.active');
     const selectedRole = activeButton ? activeButton.getAttribute('data-role') : null;
     const applicationNoteValue = applicationNote.value.trim();
 
-    if (!selectedRole || !applicationNoteValue) {
+    if (!currentSelectedProject || !selectedRole || !applicationNoteValue) {
         alert('지원 유형과 지원서를 모두 작성해주세요.');
         return;
     }
 
-    console.log('지원 제출 데이터:', {
-        project: currentSelectedProject,
+    // WebSocket으로 지원 요청 전송
+    const message = {
+        action: 'submitApplication', // WebSocket route 이름
+        projectOwnerId: currentSelectedProject.ownerId,
+        applicantId: userPool.getCurrentUser().getUsername(),
+        projectName: currentSelectedProject.projectName,
         role: selectedRole,
         note: applicationNoteValue,
-    });
+    };
+
+    ws.send(JSON.stringify(message));
 
     alert('지원이 완료되었습니다!');
     popup.style.display = 'none';
@@ -243,5 +270,8 @@ document.querySelectorAll('.nav-link').forEach((tab) => {
     });
 });
 
-// 페이지 로드 시 실행
-window.onload = fetchProjects;
+// 페이지 로드 시 WebSocket 연결
+window.onload = () => {
+    connectWebSocket();
+    fetchProjects();
+};
