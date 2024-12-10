@@ -52,7 +52,7 @@ function populateUserProfile() {
 // 사용자 프로필 데이터 가져오기
 async function fetchUserProfile() {
     try {
-        const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile?UserID=${userSub}`, {
+        const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile?UserID=${userId}`, {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
@@ -164,7 +164,7 @@ function attachFormSubmitEvent() {
 
         // 사용자 입력값 가져오기
         const userProfile = {
-            UserID: userSub, // Cognito sub 값 사용
+            UserID: userId, // Cognito 사용자 ID(username) 사용
             name: document.getElementById('user-name').value,
             email: document.getElementById('user-email').value,
             user_techstack: document.getElementById('user-techstack').value,
@@ -202,6 +202,7 @@ function attachFormSubmitEvent() {
         }
     });
 }
+
 
 
 

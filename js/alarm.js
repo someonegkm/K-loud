@@ -1,6 +1,6 @@
 async function fetchUserAlerts() {
   const cognitoUser = userPool.getCurrentUser();
-  
+
   if (!cognitoUser) {
       console.error('사용자가 로그인하지 않았습니다.');
       return;
@@ -42,23 +42,61 @@ function renderUserAlerts(alerts) {
       return;
   }
 
-  alerts.forEach((alert) => {
+  alerts.forEach((alert, index) => {
       const messageContent = alert.messageContent || {}; // messageContent 객체 가져오기
       const note = messageContent.note || '내용 없음';
       const applicantId = messageContent.applicantId || '알 수 없는 사용자';
       const projectName = messageContent.projectName || '프로젝트 이름 없음';
       const role = messageContent.role || '역할 없음';
 
-      const alertItem = `
-          <div class="alert-item" style="border: 1px solid green; padding: 10px; margin-bottom: 10px;">
-              <p><strong>프로젝트 이름:</strong> ${projectName}</p>
-              <p><strong>지원자:</strong> ${applicantId}</p>
-              <p><strong>지원 역할:</strong> ${role}</p>
-              <p><strong>지원서:</strong> ${note}</p>
-              <small><strong>시간:</strong> ${new Date(alert.timestamp).toLocaleString()}</small>
-          </div>
+      // 타임스탬프를 숫자로 변환하여 Date 객체 생성
+      const timestamp = new Date(Number(alert.timestamp)).toLocaleString();
+
+      // 알림 항목 생성
+      const alertItem = document.createElement('div');
+      alertItem.className = 'alert-item';
+      alertItem.style.border = '1px solid green';
+      alertItem.style.padding = '10px';
+      alertItem.style.marginBottom = '10px';
+      alertItem.style.cursor = 'pointer';
+      alertItem.innerHTML = `
+          <p><strong>프로젝트 이름:</strong> ${projectName}</p>
+          <p><strong>지원자:</strong> ${applicantId}</p>
+          <p><strong>지원 역할:</strong> ${role}</p>
+          <small><strong>시간:</strong> ${timestamp}</small>
       `;
-      container.innerHTML += alertItem;
+
+      // 클릭 시 상세 지원서 팝업 표시
+      alertItem.addEventListener('click', () => {
+          showPopup(alert);
+      });
+
+      container.appendChild(alertItem);
   });
 }
 
+function showPopup(alert) {
+  const popup = document.getElementById('application-popup');
+  const popupContent = document.getElementById('popup-content');
+
+  const messageContent = alert.messageContent || {};
+  const note = messageContent.note || '내용 없음';
+  const applicantId = messageContent.applicantId || '알 수 없는 사용자';
+  const projectName = messageContent.projectName || '프로젝트 이름 없음';
+  const role = messageContent.role || '역할 없음';
+
+  popupContent.innerHTML = `
+      <p><strong>프로젝트 이름:</strong> ${projectName}</p>
+      <p><strong>지원자:</strong> ${applicantId}</p>
+      <p><strong>지원 역할:</strong> ${role}</p>
+      <p><strong>지원 메모:</strong> ${note}</p>
+  `;
+
+  popup.style.display = 'block';
+}
+
+// 팝업 닫기 이벤트
+document.getElementById('close-popup').addEventListener('click', () => {
+  const popup = document.getElementById('application-popup');
+  popup.style.display = 'none';
+});
