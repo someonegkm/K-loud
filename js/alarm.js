@@ -84,11 +84,13 @@ function showPopup(alert) {
   const applicantId = messageContent.applicantId || '알 수 없는 사용자';
   const projectName = messageContent.projectName || '프로젝트 이름 없음';
   const role = messageContent.role || '역할 없음';
+  const userTechStack = alert.userTechStack || '기술 스택 없음';
 
   popupContent.innerHTML = `
       <p><strong>프로젝트 이름:</strong> ${projectName}</p>
       <p><strong>지원자:</strong> ${applicantId}</p>
       <p><strong>지원 역할:</strong> ${role}</p>
+      <p><strong>기술 스택:</strong> ${userTechStack}</p>
       <p><strong>지원 메모:</strong> ${note}</p>
   `;
 
