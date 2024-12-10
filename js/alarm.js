@@ -112,13 +112,16 @@ function showPopup(alertData) {
 function attachAcceptEvent(alertData) {
   const acceptButton = document.getElementById('accept-button');
   acceptButton.onclick = async () => {
-      const projectOwnerId = alertData.projectOwnerId; // 방장 ID
-      const applicantId = alertData.messageContent.userId; // 지원자 ID
+      const projectOwnerId = alertData.projectOwnerId;
+      const applicantId = alertData.messageContent.userId;
+      const timestamp = alertData.timestamp;
 
-      const API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/acceptNotification`;
+      const ACCEPT_API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/acceptNotification`;
+      const DELETE_API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/deleteNotification`;
 
       try {
-          const response = await fetch(API_URL, {
+          // 수락 처리 요청
+          const acceptResponse = await fetch(ACCEPT_API_URL, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
@@ -129,18 +132,40 @@ function attachAcceptEvent(alertData) {
               }),
           });
 
-          if (!response.ok) throw new Error('지원자 수락에 실패했습니다.');
+          if (!acceptResponse.ok) {
+              const errorText = await acceptResponse.text();
+              throw new Error(`지원자 수락 실패: ${acceptResponse.status} - ${errorText}`);
+          }
 
-          // 성공 알림 및 UI 업데이트
           window.alert('지원자가 성공적으로 수락되었습니다!');
+
+          // 알림 삭제 요청
+          const deleteResponse = await fetch(DELETE_API_URL, {
+              method: 'DELETE',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  projectOwnerId: projectOwnerId,
+                  timestamp: timestamp,
+              }),
+          });
+
+          if (!deleteResponse.ok) {
+              const errorText = await deleteResponse.text();
+              throw new Error(`알림 삭제 실패: ${deleteResponse.status} - ${errorText}`);
+          }
+
+          window.alert('알림이 성공적으로 삭제되었습니다!');
           document.getElementById('application-popup').style.display = 'none'; // 팝업 닫기
           fetchUserAlerts(); // 알림 목록 새로고침
       } catch (error) {
-          console.error('지원자 수락 중 오류 발생:', error);
-          window.alert('지원자 수락 중 문제가 발생했습니다.');
+          console.error('처리 중 오류 발생:', error);
+          window.alert(`처리 중 문제가 발생했습니다: ${error.message}`);
       }
   };
 }
+
 
 
 // 거절 버튼 클릭 이벤트
