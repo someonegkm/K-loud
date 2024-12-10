@@ -91,7 +91,7 @@ function showPopup(alert) {
       <p><strong>지원자:</strong> ${applicantId}</p>
       <p><strong>지원 역할:</strong> ${role}</p>
       <p><strong>기술 스택:</strong> ${userTechStack}</p>
-      <p><strong>지원 메모:</strong> ${note}</p>
+      <p><strong>지원 내용:</strong> ${note}</p>
   `;
 
   popup.style.display = 'block';
