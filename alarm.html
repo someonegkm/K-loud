@@ -71,16 +71,16 @@
     <!-- end header section -->
   </div>
 
-  <section class="notifications_section layout_padding">
+  <section class="alert_section layout_padding">
     <div class="container">
       <div class="heading_container heading_center">
-        <h2>실시간 알림</h2>
+        <h2>내 알림</h2>
       </div>
-      <div id="notifications" class="notifications_container">
-        <p>수신된 알림이 이곳에 표시됩니다.</p>
+      <div id="alert-container" class="alert-container">
+        <!-- 사용자 알림이 여기에 표시됩니다. -->
       </div>
     </div>
-  </section>
+  </section>  
   <!--알림 컨테이너-->
   <div id="notification-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
 
@@ -100,11 +100,13 @@
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
   <script src="js/cognito.js"></script>
   <script src="js/websocket.js"></script>
+  <script src="js/alarm.js"></script>
   <script>
     window.onload = () => {
         checkLoginStatus();
         requireLogin();
         connectWebSocket(userPool); // cognito.js에서 가져온 userPool 사용
+        fetchUserAlerts();
     };
   </script>
   <!-- jQery -->

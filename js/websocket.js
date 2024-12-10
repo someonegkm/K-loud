@@ -1,5 +1,6 @@
 // WebSocket 연결
 let ws;
+let userName = null; // 사용자 이름을 저장할 전역 변수
 
 // 알림 표시 함수
 function showNotification(messageContent) {
@@ -17,7 +18,7 @@ function showNotification(messageContent) {
         transition: opacity 0.3s ease-out;
     `;
     notification.innerHTML = `
-        <strong>새 알림</strong><br>
+        <strong>프로젝트 알림</strong><br>
         ${messageContent}
         <button style="float: right; background: none; border: none; color: #007bff; cursor: pointer;">닫기</button>
     `;
@@ -76,7 +77,6 @@ function connectWebSocket(userPool) {
                     지원자: ${message.applicantId}<br>
                     프로젝트: ${message.projectName}<br>
                     역할: ${message.role}<br>
-                    지원서: ${message.note}
                 `);
             }
         };
