@@ -33,6 +33,7 @@ async function fetchUserAlerts() {
   });
 }
 
+
 function renderUserAlerts(alerts) {
   const container = document.getElementById('alert-container');
   container.innerHTML = ''; // 기존 알림 지우기
@@ -42,14 +43,14 @@ function renderUserAlerts(alerts) {
       return;
   }
 
-  alerts.forEach((alert, index) => {
-      const messageContent = alert.messageContent || {}; // messageContent 객체 가져오기
+  alerts.forEach(alert => {
+      const messageContent = alert.messageContent || {};
       const note = messageContent.note || '내용 없음';
       const applicantId = messageContent.applicantId || '알 수 없는 사용자';
+      const userId = alert.userId || '알 수 없는 ID'; // userId 활용
       const projectName = messageContent.projectName || '프로젝트 이름 없음';
       const role = messageContent.role || '역할 없음';
 
-      // 타임스탬프를 숫자로 변환하여 Date 객체 생성
       const timestamp = new Date(Number(alert.timestamp)).toLocaleString();
 
       // 알림 항목 생성
@@ -63,10 +64,10 @@ function renderUserAlerts(alerts) {
           <p><strong>프로젝트 이름:</strong> ${projectName}</p>
           <p><strong>지원자:</strong> ${applicantId}</p>
           <p><strong>지원 역할:</strong> ${role}</p>
+          <p><strong>User ID:</strong> ${userId}</p> <!-- userId 추가 -->
           <small><strong>시간:</strong> ${timestamp}</small>
       `;
 
-      // 클릭 시 상세 지원서 팝업 표시
       alertItem.addEventListener('click', () => {
           showPopup(alert);
       });
@@ -75,7 +76,8 @@ function renderUserAlerts(alerts) {
   });
 }
 
-function showPopup(alertData) { // 'alert' -> 'alertData'
+
+function showPopup(alertData) {
   const popup = document.getElementById('application-popup');
   const popupContent = document.getElementById('popup-content');
 
@@ -99,36 +101,74 @@ function showPopup(alertData) { // 'alert' -> 'alertData'
   `;
 
   popup.style.display = 'block';
-  attachRejectEvent(alertData); // 'alert' -> 'alertData'
+
+  // 수락 및 거절 이벤트 연결
+  attachAcceptEvent(alertData);
+  attachRejectEvent(alertData);
+}
+
+
+// 수락 버튼 클릭 이벤트
+function attachAcceptEvent(alertData) {
+  const acceptButton = document.getElementById('accept-button');
+  acceptButton.onclick = async () => {
+      const projectOwnerId = alertData.projectOwnerId; // 방장 ID
+      const applicantId = alertData.messageContent.userId; // 지원자 ID
+
+      const API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/acceptNotification`;
+
+      try {
+          const response = await fetch(API_URL, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  projectOwnerId: projectOwnerId,
+                  applicantId: applicantId,
+              }),
+          });
+
+          if (!response.ok) throw new Error('지원자 수락에 실패했습니다.');
+
+          // 성공 알림 및 UI 업데이트
+          window.alert('지원자가 성공적으로 수락되었습니다!');
+          document.getElementById('application-popup').style.display = 'none'; // 팝업 닫기
+          fetchUserAlerts(); // 알림 목록 새로고침
+      } catch (error) {
+          console.error('지원자 수락 중 오류 발생:', error);
+          window.alert('지원자 수락 중 문제가 발생했습니다.');
+      }
+  };
 }
 
 
 // 거절 버튼 클릭 이벤트
 function attachRejectEvent(alertData) { // 'alert' 대신 'alertData'로 변경
-  const rejectButton = document.getElementById('reject-button');
-  rejectButton.onclick = async () => {
-      const projectOwnerId = alertData.projectOwnerId; // 'alert' -> 'alertData'
-      const timestamp = alertData.timestamp; // 'alert' -> 'alertData'
+const rejectButton = document.getElementById('reject-button');
+rejectButton.onclick = async () => {
+    const projectOwnerId = alertData.projectOwnerId; // 'alert' -> 'alertData'
+    const timestamp = alertData.timestamp; // 'alert' -> 'alertData'
 
-      const API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/deleteNotification?projectOwnerId=${projectOwnerId}&timestamp=${timestamp}`;
+    const API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/deleteNotification?projectOwnerId=${projectOwnerId}&timestamp=${timestamp}`;
 
-      try {
-          const response = await fetch(API_URL, {
-              method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' },
-          });
+    try {
+        const response = await fetch(API_URL, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+        });
 
-          if (!response.ok) throw new Error('알림 삭제에 실패했습니다.');
+        if (!response.ok) throw new Error('알림 삭제에 실패했습니다.');
 
-          // JavaScript 기본 alert 함수 호출
-          window.alert('알림이 성공적으로 삭제되었습니다!');
-          document.getElementById('application-popup').style.display = 'none'; // 팝업 닫기
-          fetchUserAlerts(); // 알림 목록 새로고침
-      } catch (error) {
-          console.error('알림 삭제 중 오류 발생:', error);
-          window.alert('알림 삭제 중 문제가 발생했습니다.');
-      }
-  };
+        // JavaScript 기본 alert 함수 호출
+        window.alert('알림이 성공적으로 삭제되었습니다!');
+        document.getElementById('application-popup').style.display = 'none'; // 팝업 닫기
+        fetchUserAlerts(); // 알림 목록 새로고침
+    } catch (error) {
+        console.error('알림 삭제 중 오류 발생:', error);
+        window.alert('알림 삭제 중 문제가 발생했습니다.');
+    }
+};
 }
 
 
@@ -136,6 +176,6 @@ function attachRejectEvent(alertData) { // 'alert' 대신 'alertData'로 변경
 document.getElementById('close-popup').addEventListener('click', closePopup);
 
 function closePopup() {
-    const popup = document.getElementById('application-popup');
-    if (popup) popup.style.display = 'none';
+  const popup = document.getElementById('application-popup');
+  if (popup) popup.style.display = 'none';
 }
