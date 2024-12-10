@@ -164,7 +164,7 @@ async function fetchMyProjects(userId) {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+                Authorization: `Bearer ${localStorage.getItem('idToken')}`,
             },
         });
 
@@ -174,8 +174,8 @@ async function fetchMyProjects(userId) {
         }
 
         const projects = await response.json();
-        console.log('참여한 프로젝트 데이터:', projects);
-        renderMyProjects(projects); // 가져온 데이터를 렌더링
+        console.log('Lambda 응답:', projects); // 응답 데이터 확인
+        renderMyProjects(projects);
     } catch (error) {
         console.error('참여한 프로젝트 조회 중 오류 발생:', error);
         const container = document.getElementById('participated-projects-container');
@@ -183,10 +183,15 @@ async function fetchMyProjects(userId) {
     }
 }
 
-
 function renderMyProjects(projects) {
-    const container = document.getElementById('my-projects-container');
-    container.innerHTML = ''; // 기존 데이터 삭제
+    const container = document.getElementById('participated-projects-container');
+
+    if (!container) {
+        console.error("참여한 프로젝트 컨테이너가 존재하지 않습니다.");
+        return;
+    }
+
+    container.innerHTML = ''; // 기존 데이터 초기화
 
     if (projects.length === 0) {
         container.innerHTML = '<p>참여한 프로젝트가 없습니다.</p>';
@@ -194,14 +199,17 @@ function renderMyProjects(projects) {
     }
 
     projects.forEach(project => {
+        console.log('프로젝트 데이터:', project); // 각 프로젝트 데이터 확인
+
         const projectItem = document.createElement('div');
         projectItem.className = 'project-item';
         projectItem.style.border = '1px solid #ccc';
         projectItem.style.padding = '10px';
         projectItem.style.marginBottom = '10px';
 
+        // projectName이 없으면 기본값으로 처리
         projectItem.innerHTML = `
-            <h3>${project.projectName}</h3>
+            <h4>${project.projectName || '프로젝트 이름 없음'}</h4>
             <p><strong>방장:</strong> ${project.projectOwnerId}</p>
             <p><strong>참여 시간:</strong> ${new Date(Number(project.timestamp)).toLocaleString()}</p>
         `;
@@ -209,6 +217,9 @@ function renderMyProjects(projects) {
         container.appendChild(projectItem);
     });
 }
+
+
+
 
 
 
