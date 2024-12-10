@@ -14,6 +14,8 @@ const submitApplicationButton = document.getElementById('submit-application');
 
 // 전역 변수
 let currentSelectedProject = null; // 현재 선택된 프로젝트
+let userName = null; // 사용자 이름을 저장할 전역 변수
+let userId = null; // 사용자 이름을 저장할 전역 변수
 const API_URL = 'https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/getproject';
 
 // WebSocket 연결
@@ -35,8 +37,21 @@ function connectWebSocket() {
         }
 
         // 사용자 ID 가져오기
-        const userId = cognitoUser.getUsername(); // 또는 다른 방식으로 가져올 수도 있음
+        const idToken = session.getIdToken().getJwtToken();
+        // Base64 디코딩을 UTF-8로 처리
+        const payload = JSON.parse(
+            decodeURIComponent(
+                atob(idToken.split('.')[1])
+                    .split('')
+                    .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`)
+                    .join('')
+            )
+        );
+        userName = payload.name || '이름 없음'; // `name` 속성 또는 기본값 설정
+        userId = cognitoUser.getUsername(); // 또는 다른 방식으로 가져올 수도 있음
         console.log('User ID:', userId);
+        console.log('User Name:', userName);
+
 
         // WebSocket 연결
         const wsUrl = `wss://fds9jyxgw7.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
@@ -148,7 +163,8 @@ submitApplicationButton.addEventListener('click', () => {
     const message = {
         action: 'submitApplication', // WebSocket route 이름
         projectOwnerId: currentSelectedProject.ownerId,
-        applicantId: userPool.getCurrentUser().getUsername(),
+        applicantId: userName, // 사용자 이름
+        userId: userId, // 사용자 ID 추가
         projectName: currentSelectedProject.projectName,
         role: selectedRole,
         note: applicationNoteValue,
