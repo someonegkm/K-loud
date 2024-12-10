@@ -38,15 +38,13 @@ function populateUserProfile() {
                 }
             });
 
-            // 사용자 속성 로드 후 데이터 가져오기
+            // 데이터 가져오기
             fetchUserProfile(); // 사용자 프로필 데이터 가져오기
-            fetchUserProjects(); // 사용자 프로젝트 데이터 가져오기
+            fetchUserProjects(); // 사용자가 생성한 프로젝트 데이터 가져오기
+            fetchMyProjects(userId); // userId를 기반으로 참여한 프로젝트 데이터 가져오기
         });
     });
 }
-
-
-
 
 
 // 사용자 프로필 데이터 가져오기
@@ -157,6 +155,64 @@ async function deleteProject(projectId) {
     }
 }
 
+//사용자가 참여한 프로젝트 가져오기
+async function fetchMyProjects(userId) {
+    const API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/getAcceptProjects?applicantId=${userId}`;
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`참여한 프로젝트 조회 실패: ${response.status} - ${errorText}`);
+        }
+
+        const projects = await response.json();
+        console.log('참여한 프로젝트 데이터:', projects);
+        renderMyProjects(projects); // 가져온 데이터를 렌더링
+    } catch (error) {
+        console.error('참여한 프로젝트 조회 중 오류 발생:', error);
+        const container = document.getElementById('participated-projects-container');
+        container.innerHTML = '<p>참여한 프로젝트를 가져오는 중 문제가 발생했습니다.</p>';
+    }
+}
+
+
+function renderMyProjects(projects) {
+    const container = document.getElementById('my-projects-container');
+    container.innerHTML = ''; // 기존 데이터 삭제
+
+    if (projects.length === 0) {
+        container.innerHTML = '<p>참여한 프로젝트가 없습니다.</p>';
+        return;
+    }
+
+    projects.forEach(project => {
+        const projectItem = document.createElement('div');
+        projectItem.className = 'project-item';
+        projectItem.style.border = '1px solid #ccc';
+        projectItem.style.padding = '10px';
+        projectItem.style.marginBottom = '10px';
+
+        projectItem.innerHTML = `
+            <h3>${project.projectName}</h3>
+            <p><strong>방장:</strong> ${project.projectOwnerId}</p>
+            <p><strong>참여 시간:</strong> ${new Date(Number(project.timestamp)).toLocaleString()}</p>
+        `;
+
+        container.appendChild(projectItem);
+    });
+}
+
+
+
+// 사용자 정보 저장
 function attachFormSubmitEvent() {
     const form = document.getElementById('profile-form');
     form.addEventListener('submit', async function (e) {
