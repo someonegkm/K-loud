@@ -205,14 +205,7 @@ function attachFormSubmitEvent() {
 
 
 
-// 페이지 로드 시 실행
-window.onload = function () {
-    console.log('페이지 로드');
-    updateNavBar(); // 내비게이션 업데이트
-    populateUserProfile(); // 사용자 프로필 채우기
-    attachFormSubmitEvent(); // 폼 제출 이벤트 연결
-    fetchUserProjects(); // 사용자 프로젝트 가져오기
-};
+
 
 // 내비게이션 바 업데이트 함수
 function updateNavBar() {

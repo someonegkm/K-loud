@@ -256,6 +256,18 @@
   <script src="js/cognito.js"></script>
   <!-- 마이페이지 전용 JavaScript 파일 연결 -->
   <script src="js/mypage.js"></script>
+  <script src="js/websocket.js"></script>
+  <script>
+    // 페이지 로딩 시 로그인 상태 확인 및 리디렉션
+    window.onload = function() {
+      console.log('페이지 로드');
+      updateNavBar(); // 내비게이션 업데이트
+      populateUserProfile(); // 사용자 프로필 채우기
+      attachFormSubmitEvent(); // 폼 제출 이벤트 연결
+      fetchUserProjects(); // 사용자 프로젝트 가져오기
+      connectWebSocket(userPool);
+    };
+  </script>
 
   <!-- jQuery -->
   <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>

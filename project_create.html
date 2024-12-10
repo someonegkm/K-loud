@@ -268,6 +268,7 @@
     <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
     <!-- JavaScript 파일 연결 -->
     <script src="js/cognito.js"></script>
+    <script src="js/websocket.js"></script>
     <script src="js/project_create.js"></script>
   
     <!-- 페이지 보호를 위한 스크립트 -->
@@ -276,6 +277,7 @@
       window.onload = function() {
         checkLoginStatus();
         requireLogin(); // 로그인 상태가 아닌 경우 로그인 페이지로 리디렉션
+        connectWebSocket(userPool);
       };
     </script>
 

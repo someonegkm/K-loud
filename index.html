@@ -696,8 +696,15 @@
 
   <!-- AWS Cognito JavaScript SDK -->
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
-  <!-- JavaScript 파일 연결 -->
   <script src="js/cognito.js"></script>
+  <script src="js/websocket.js"></script>
+  <script>
+    window.onload = () => {
+        checkLoginStatus();
+        requireLogin();
+        connectWebSocket(userPool); // cognito.js에서 가져온 userPool 사용
+    };
+  </script>
 
   <!-- jQuery -->
   <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
