@@ -21,7 +21,7 @@ function connectWebSocket(userPool) {
         console.log('User ID:', userId);
 
         // WebSocket 연결
-        const wsUrl = `wss://tt2qh0upm2.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
+        const wsUrl = `wss://fds9jyxgw7.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -37,8 +37,12 @@ function connectWebSocket(userPool) {
             console.log('WebSocket 연결 종료');
         };
 
-        ws.onerror = (error) => {
-            console.error('WebSocket 에러:', error);
+        ws.onerror = (event) => {
+            console.error('WebSocket 에러 발생:', event);
+        };
+        
+        ws.onclose = (event) => {
+            console.log('WebSocket 연결이 종료되었습니다. 코드:', event.code, '이유:', event.reason);
         };
     });
 }

@@ -39,7 +39,7 @@ function connectWebSocket() {
         console.log('User ID:', userId);
 
         // WebSocket 연결
-        const wsUrl = `wss://tt2qh0upm2.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
+        const wsUrl = `wss://fds9jyxgw7.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
