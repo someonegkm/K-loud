@@ -159,15 +159,16 @@ submitApplicationButton.addEventListener('click', () => {
         return;
     }
 
-    // WebSocket으로 지원 요청 전송
+    // Room ID를 포함한 WebSocket 메시지
     const message = {
-        action: 'submitApplication', // WebSocket route 이름
+        action: 'submitApplication',
         projectOwnerId: currentSelectedProject.ownerId,
         applicantId: userName, // 사용자 이름
-        userId: userId, // 사용자 ID 추가
+        userId, // 사용자 ID 추가
         projectName: currentSelectedProject.projectName,
         role: selectedRole,
         note: applicationNoteValue,
+        projectId: currentSelectedProject.projectId || 'default-room-id', // Room ID 포함
     };
 
     ws.send(JSON.stringify(message));
