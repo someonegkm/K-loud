@@ -124,6 +124,7 @@ function renderProjects(projects) {
 
 // 팝업 열기
 function openProjectPopup(project) {
+    requireLogin(); // 로그인 상태 확인 후 진행
     if (!project) {
         console.error('잘못된 프로젝트 데이터:', project);
         alert('프로젝트 데이터를 불러올 수 없습니다.');
