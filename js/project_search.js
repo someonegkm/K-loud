@@ -74,9 +74,11 @@ async function fetchProjects() {
         if (!response.ok) throw new Error('API 요청 실패');
 
         const projects = await response.json();
-        console.log('프로젝트 데이터:', projects);
+        console.log('API 응답 프로젝트 데이터:', projects); // API 응답 로그
 
         const filteredProjects = projects.filter(project => project.ownerId !== userId && project.maxTeamSize > 0);
+        console.log('필터링된 프로젝트 데이터:', filteredProjects); // 필터링 후 데이터 로그
+
         renderProjects(filteredProjects);
     } catch (error) {
         console.error('프로젝트 데이터를 가져오는 중 오류 발생:', error);
@@ -92,13 +94,15 @@ function renderProjects(projects) {
     const designContainer = document.getElementById('design-projects');
     const planningContainer = document.getElementById('planning-projects');
 
+    // 초기화
     frontendContainer.innerHTML = '';
     backendContainer.innerHTML = '';
     designContainer.innerHTML = '';
     planningContainer.innerHTML = '';
 
     projects.forEach((project, index) => {
-        const remainingSlots = project.maxTeamSize - (project.participants?.length || 0);
+        const remainingSlots = Math.max(0, project.maxTeamSize - (project.participants?.length || 0));
+        console.log(`Project: ${project.projectName}, Roles: ${project.roles}, Remaining Slots: ${remainingSlots}`);
         const isParticipated = project.isParticipated;
 
         const projectCard = document.createElement('div');
@@ -113,14 +117,36 @@ function renderProjects(projects) {
             ${isParticipated ? '<small>이미 참여한 프로젝트입니다.</small>' : ''}
         `;
 
-        if (project.roles.includes('frontend')) frontendContainer.appendChild(projectCard);
-        if (project.roles.includes('backend')) backendContainer.appendChild(projectCard);
-        if (project.roles.includes('design')) designContainer.appendChild(projectCard);
-        if (project.roles.includes('pm')) planningContainer.appendChild(projectCard);
-
+        // 프로젝트 카드 클릭 이벤트 추가
         projectCard.addEventListener('click', () => openProjectPopup(project));
+
+        // 기획(PM)만 별도로 처리
+        if (project.roles.includes('pm') && remainingSlots > 0) {
+            console.log('Adding to Planning:', project.projectName);
+            const planningCard = projectCard.cloneNode(true);
+            planningCard.addEventListener('click', () => openProjectPopup(project));
+            planningContainer.appendChild(planningCard);
+        } else {
+            console.log(`Not Adding to Planning: ${project.projectName}, includes pm: ${project.roles.includes('pm')}, remainingSlots: ${remainingSlots}`);
+        }
+
+        // 다른 역할별 탭 추가
+        ['frontend', 'backend', 'design'].forEach((role) => {
+            if (project.roles.includes(role) && remainingSlots > 0) {
+                const container = document.getElementById(`${role}-projects`);
+                if (container) {
+                    console.log(`Adding to ${role}:`, project.projectName);
+                    const clonedCard = projectCard.cloneNode(true);
+                    clonedCard.addEventListener('click', () => openProjectPopup(project));
+                    container.appendChild(clonedCard);
+                }
+            }
+        });
     });
 }
+
+
+
 
 // 팝업 열기
 function openProjectPopup(project) {
@@ -146,7 +172,7 @@ function openProjectPopup(project) {
     applicationRoles.innerHTML = ''; // 기존 역할 초기화
 
     project.roles.forEach((role) => {
-        const isDisabled = project.disabledRoles && project.disabledRoles.includes(role); // 비활성화 확인
+        const isDisabled = (project.disabledRoles || []).includes(role); // 비활성화 확인
         const roleButton = document.createElement('button');
         roleButton.className = `role-button ${isDisabled ? 'disabled' : ''}`;
         roleButton.textContent = roleDisplayNames[role] || role; // 역할 이름 매핑

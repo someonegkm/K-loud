@@ -97,68 +97,68 @@
   <!-- about section -->
 
   <div class="container-fluid">
-    <div class="row">
-      <!-- 좌측 네비게이션 -->
-      <div class="col-md-3" style="background-color: #f8f9fa; padding: 20px;">
-        <div class="list-group">
-          <a href="project_search.html" class="list-group-item list-group-item-action active">
-            프로젝트 목록
-          </a>
-          <a href="project_matching.html" class="list-group-item list-group-item-action">
-            프로젝트 매칭하기
-          </a>
-        </div>
+  <div class="row">
+    <!-- 좌측 네비게이션 -->
+    <div class="col-md-3" style="background-color: #f8f9fa; padding: 20px;">
+      <div class="list-group">
+        <a href="project_search.html" class="list-group-item list-group-item-action active">
+          프로젝트 목록
+        </a>
+        <a href="project_matching.html" class="list-group-item list-group-item-action">
+          프로젝트 매칭하기
+        </a>
       </div>
-  
-      <!-- 우측 콘텐츠 -->
-      <div class="col-md-9">
-        <!-- 기존 프로젝트 찾기 내용 -->
-        <div class="heading_container heading_center">
-          <h2>프로젝트 찾기</h2>
+    </div>
+
+    <!-- 우측 콘텐츠 -->
+    <div class="col-md-9">
+      <!-- 기존 프로젝트 찾기 내용 -->
+      <div class="heading_container heading_center">
+        <h2>프로젝트 찾기</h2>
+      </div>
+
+      <!-- 카테고리 탭 -->
+      <ul class="nav nav-tabs justify-content-center" id="projectCategoryTabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" id="frontend-tab" data-toggle="tab" href="#frontend" role="tab" aria-controls="frontend" aria-selected="true">
+            프론트엔드
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="backend-tab" data-toggle="tab" href="#backend" role="tab" aria-controls="backend" aria-selected="false">
+            백엔드
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="design-tab" data-toggle="tab" href="#design" role="tab" aria-controls="design" aria-selected="false">
+            디자인
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="planning-tab" data-toggle="tab" href="#planning" role="tab" aria-controls="planning" aria-selected="false">
+            기획
+          </a>
+        </li>
+      </ul>
+
+      <!-- 탭 내용 -->
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="frontend" role="tabpanel" aria-labelledby="frontend-tab">
+          <div id="frontend-projects" class="category-content"></div>
         </div>
-  
-        <!-- 카테고리 탭 -->
-        <ul class="nav nav-tabs justify-content-center" id="projectCategoryTabs" role="tablist">
-          <li class="nav-item">
-            <a class="nav-link active" id="frontend-tab" data-toggle="tab" href="#frontend" role="tab" aria-controls="frontend" aria-selected="true">
-              프론트엔드
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" id="backend-tab" data-toggle="tab" href="#backend" role="tab" aria-controls="backend" aria-selected="false">
-              백엔드
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" id="design-tab" data-toggle="tab" href="#design" role="tab" aria-controls="design" aria-selected="false">
-              디자인
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" id="planning-tab" data-toggle="tab" href="#planning" role="tab" aria-controls="planning" aria-selected="false">
-              기획
-            </a>
-          </li>
-        </ul>
-  
-        <!-- 탭 내용 -->
-        <div class="tab-content" id="projectCategoryContent">
-          <div class="tab-pane fade show active" id="frontend" role="tabpanel" aria-labelledby="frontend-tab">
-            <div id="frontend-projects" class="category-content"></div>
-          </div>
-          <div class="tab-pane fade" id="backend" role="tabpanel" aria-labelledby="backend-tab">
-            <div id="backend-projects" class="category-content"></div>
-          </div>
-          <div class="tab-pane fade" id="design" role="tabpanel" aria-labelledby="design-tab">
-            <div id="design-projects" class="category-content"></div>
-          </div>
-          <div class="tab-pane fade" id="planning" role="tabpanel" aria-labelledby="planning-tab">
-            <div id="planning-projects" class="category-content"></div>
-          </div>
+        <div class="tab-pane fade" id="backend" role="tabpanel" aria-labelledby="backend-tab">
+          <div id="backend-projects" class="category-content"></div>
+        </div>
+        <div class="tab-pane fade" id="design" role="tabpanel" aria-labelledby="design-tab">
+          <div id="design-projects" class="category-content"></div>
+        </div>
+        <div class="tab-pane fade" id="planning" role="tabpanel" aria-labelledby="planning-tab">
+          <div id="planning-projects" class="category-content"></div>
         </div>
       </div>
     </div>
   </div>
+</div>
   
 
   <!-- end about section -->
