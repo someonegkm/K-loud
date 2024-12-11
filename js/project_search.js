@@ -18,11 +18,10 @@ const roleDisplayNames = {
     pm: "기획"
 };
 
-
 // 전역 변수
-let currentSelectedProject = null; // 현재 선택된 프로젝트
-let userName = null; // 사용자 이름을 저장할 전역 변수
-let userId = null; // 사용자 이름을 저장할 전역 변수
+let currentSelectedProject = null;
+let userName = null;
+let userId = null;
 const API_URL = 'https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/getproject';
 
 // WebSocket 연결
@@ -36,16 +35,13 @@ function connectWebSocket() {
         return;
     }
 
-    // Cognito 사용자 ID 가져오기
     cognitoUser.getSession((err, session) => {
         if (err) {
             console.error('세션을 가져오는 중 오류 발생:', err);
             return;
         }
 
-        // 사용자 ID 가져오기
         const idToken = session.getIdToken().getJwtToken();
-        // Base64 디코딩을 UTF-8로 처리
         const payload = JSON.parse(
             decodeURIComponent(
                 atob(idToken.split('.')[1])
@@ -54,38 +50,20 @@ function connectWebSocket() {
                     .join('')
             )
         );
-        userName = payload.name || '이름 없음'; // `name` 속성 또는 기본값 설정
-        userId = cognitoUser.getUsername(); // 또는 다른 방식으로 가져올 수도 있음
-        console.log('User ID:', userId);
-        console.log('User Name:', userName);
+        userName = payload.name || '이름 없음';
+        userId = cognitoUser.getUsername();
 
-
-        // WebSocket 연결
         const wsUrl = `wss://fds9jyxgw7.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
         ws = new WebSocket(wsUrl);
 
-        ws.onopen = () => {
-            console.log('WebSocket 연결 성공');
-        };
-
-        ws.onmessage = (event) => {
-            console.log('서버로부터 받은 메시지:', event.data);
-            alert('새 알림: ' + event.data);
-        };
-
-        ws.onclose = () => {
-            console.log('WebSocket 연결 종료');
-        };
-
-        ws.onerror = (error) => {
-            console.error('WebSocket 에러:', error);
-        };
+        ws.onopen = () => console.log('WebSocket 연결 성공');
+        ws.onmessage = (event) => alert('새 알림: ' + event.data);
+        ws.onclose = () => console.log('WebSocket 연결 종료');
+        ws.onerror = (error) => console.error('WebSocket 에러:', error);
     });
 }
 
-
 // 데이터 가져오기
-// 수정된 fetchProjects 함수
 async function fetchProjects() {
     try {
         const response = await fetch(`${API_URL}?userId=${userId}`, {
@@ -97,205 +75,54 @@ async function fetchProjects() {
 
         const projects = await response.json();
         console.log('프로젝트 데이터:', projects);
-        renderProjects(projects);
+
+        const filteredProjects = projects.filter(project => project.ownerId !== userId && project.maxTeamSize > 0);
+        renderProjects(filteredProjects);
     } catch (error) {
         console.error('프로젝트 데이터를 가져오는 중 오류 발생:', error);
     }
 }
 
-// 로그인 상태 확인 함수 추가
-function ensureLoggedIn(actionCallback) {
-    const cognitoUser = userPool.getCurrentUser();
-    if (cognitoUser) {
-        cognitoUser.getSession((err, session) => {
-            if (err || !session.isValid()) {
-                alert('로그인이 필요합니다.');
-                window.location.href = 'login.html'; // 로그인 페이지로 리디렉션
-            } else {
-                actionCallback(); // 로그인이 유효한 경우 콜백 실행
-            }
-        });
-    } else {
-        alert('로그인이 필요합니다.');
-        window.location.href = 'login.html'; // 로그인 페이지로 리디렉션
-    }
-}
-
-// 팝업 열기
-function openProjectPopup(project) {
-    if (!project) {
-        console.error('잘못된 프로젝트 데이터:', project);
-        alert('프로젝트 데이터를 불러올 수 없습니다.');
-        return;
-    }
-
-    currentSelectedProject = project;
-
-    popupTitle.textContent = project.projectName || '프로젝트 이름 없음';
-    popupDescription.textContent = project.projectDescription || '설명이 없습니다.';
-    popupTechStack.textContent = project.techStack ? project.techStack.join(', ') : '기술 스택 없음';
-    popupType.textContent = project.projectType || '유형 없음';
-    popupCreated.textContent = project.createdAt || '생성 날짜 없음';
-
-    popup.style.display = 'block';
-
-    // 초기화
-    applicationSection.style.display = 'none'; // 지원 영역 숨김
-    resetApplicationForm();
-}
-
-// "지원하기" 버튼 클릭 이벤트
-applyButton.onclick = () => {
-    ensureLoggedIn(() => {
-        if (!currentSelectedProject) {
-            alert('프로젝트 데이터를 불러올 수 없습니다. 다시 시도해주세요.');
-            return;
-        }
-        // 지원 영역 열기
-        applicationSection.style.display = 'block';
-    });
-};
-
-// 지원 제출 버튼 클릭 이벤트
-submitApplicationButton.addEventListener('click', () => {
-    const activeButton = document.querySelector('.role-button.active');
-    const selectedRole = activeButton ? activeButton.getAttribute('data-role') : null;
-    const applicationNoteValue = applicationNote.value.trim();
-
-    if (!currentSelectedProject || !selectedRole || !applicationNoteValue) {
-        alert('지원 유형과 지원서를 모두 작성해주세요.');
-        return;
-    }
-
-    // Room ID를 포함한 WebSocket 메시지
-    const message = {
-        action: 'submitApplication',
-        projectOwnerId: currentSelectedProject.ownerId,
-        applicantId: userName, // 사용자 이름
-        userId, // 사용자 ID 추가
-        projectName: currentSelectedProject.projectName,
-        role: selectedRole,
-        note: applicationNoteValue,
-        projectId: currentSelectedProject.projectId || 'default-room-id', // Room ID 포함
-    };
-
-    ws.send(JSON.stringify(message));
-
-    alert('지원이 완료되었습니다!');
-    popup.style.display = 'none';
-    resetApplicationForm();
-});
-
-// 지원 양식 초기화
-function resetApplicationForm() {
-    const roleButtons = document.querySelectorAll('.role-button');
-    roleButtons.forEach((button) => button.classList.remove('active'));
-
-    document.getElementById('application-note').value = ''; // 지원서 초기화
-    document.getElementById('application-section').style.display = 'none'; // 지원 영역 숨기기
-}
-
-
-// 버튼 활성화 토글 (하나만 선택 가능)
-applicationRoles.addEventListener('click', (event) => {
-    const clickedButton = event.target;
-    if (clickedButton.classList.contains('role-button')) {
-        const roleButtons = document.querySelectorAll('.role-button');
-        roleButtons.forEach((button) => button.classList.remove('active'));
-        clickedButton.classList.add('active');
-    }
-});
-
-// 팝업 닫기
-closePopup.addEventListener('click', () => {
-    popup.style.display = 'none';
-});
-
-// 바깥 클릭 시 팝업 닫기
-window.addEventListener('click', (event) => {
-    if (event.target === popup) {
-        popup.style.display = 'none';
-    }
-});
-
-// 프로젝트 카드 클릭 이벤트 추가 함수
-function addProjectCardListeners(projectCards, projects) {
-    projectCards.forEach((card) => {
-        if (card instanceof HTMLElement) { // card가 DOM 요소인지 확인
-            const index = card.getAttribute('data-index');
-            card.addEventListener('click', () => openProjectPopup(projects[index]));
-        } else {
-            console.error('올바르지 않은 카드 요소:', card);
-        }
-    });
-}
-
-// 프로젝트 렌더링 수정
+// 프로젝트 렌더링
 function renderProjects(projects) {
-    console.log('렌더링할 프로젝트 데이터:', projects); // 프로젝트 데이터 확인
+    console.log('렌더링할 프로젝트 데이터:', projects);
 
     const frontendContainer = document.getElementById('frontend-projects');
     const backendContainer = document.getElementById('backend-projects');
     const designContainer = document.getElementById('design-projects');
     const planningContainer = document.getElementById('planning-projects');
 
-    // 각 카테고리 컨테이너 초기화
     frontendContainer.innerHTML = '';
     backendContainer.innerHTML = '';
     designContainer.innerHTML = '';
     planningContainer.innerHTML = '';
 
-    // 모집 인원이 0보다 큰 프로젝트만 필터링
-    const filteredProjects = projects.filter((project) => project.maxTeamSize > 0);
-
-    // 프로젝트 카드 생성
-    filteredProjects.forEach((project, index) => {
+    projects.forEach((project, index) => {
         const remainingSlots = project.maxTeamSize - (project.participants?.length || 0);
-        const isParticipated = project.isParticipated; // Lambda 응답에서 isParticipated 가져오기
+        const isParticipated = project.isParticipated;
 
-        const projectCard = `
-            <div class="project-card" data-index="${index}">
-                <h5>${project.projectName}</h5>
-                <small>프로젝트 유형: ${project.projectType}</small>
-                <br>
-                <small>모집 인원: ${remainingSlots}/${project.maxTeamSize}</small>
-                ${
-                    isParticipated
-                        ? '<small>이미 참여한 프로젝트입니다.</small>'
-                        : ''
-                }
-            </div>
+        const projectCard = document.createElement('div');
+        projectCard.className = 'project-card';
+        projectCard.dataset.index = index;
+
+        projectCard.innerHTML = `
+            <h5>${project.projectName}</h5>
+            <small>프로젝트 유형: ${project.projectType}</small>
+            <br>
+            <small>모집 인원: ${remainingSlots}/${project.maxTeamSize}</small>
+            ${isParticipated ? '<small>이미 참여한 프로젝트입니다.</small>' : ''}
         `;
 
-        if (project.roles.includes('frontend')) {
-            frontendContainer.innerHTML += projectCard;
-        }
-        if (project.roles.includes('backend')) {
-            backendContainer.innerHTML += projectCard;
-        }
-        if (project.roles.includes('design')) {
-            designContainer.innerHTML += projectCard;
-        }
-        if (project.roles.includes('pm')) {
-            planningContainer.innerHTML += projectCard;
-        }
+        if (project.roles.includes('frontend')) frontendContainer.appendChild(projectCard);
+        if (project.roles.includes('backend')) backendContainer.appendChild(projectCard);
+        if (project.roles.includes('design')) designContainer.appendChild(projectCard);
+        if (project.roles.includes('pm')) planningContainer.appendChild(projectCard);
+
+        projectCard.addEventListener('click', () => openProjectPopup(project));
     });
-
-    // DOM에 반영된 후에 카드 요소 가져오기
-    const frontendCards = Array.from(frontendContainer.querySelectorAll('.project-card'));
-    const backendCards = Array.from(backendContainer.querySelectorAll('.project-card'));
-    const designCards = Array.from(designContainer.querySelectorAll('.project-card'));
-    const planningCards = Array.from(planningContainer.querySelectorAll('.project-card'));
-
-    // 이벤트 리스너 등록
-    addProjectCardListeners(frontendCards, filteredProjects);
-    addProjectCardListeners(backendCards, filteredProjects);
-    addProjectCardListeners(designCards, filteredProjects);
-    addProjectCardListeners(planningCards, filteredProjects);
 }
 
-// 프로젝트 카드 클릭 이벤트 수정
-// 팝업 수정
+// 팝업 열기
 function openProjectPopup(project) {
     if (!project) {
         console.error('잘못된 프로젝트 데이터:', project);
@@ -338,8 +165,8 @@ function openProjectPopup(project) {
         applicationRoles.appendChild(roleButton);
     });
 
-    // 지원하기 버튼 비활성화
-    applyButton.disabled = project.isParticipated; // 이미 참여한 경우 비활성화
+    // 이미 참여한 프로젝트라면 버튼 비활성화
+    applyButton.disabled = project.isParticipated;
 
     // 지원 영역 초기화
     resetApplicationForm();
@@ -349,37 +176,76 @@ function openProjectPopup(project) {
 }
 
 
-// 팝업 닫기 수정
+// 지원 제출 버튼 클릭 이벤트
+submitApplicationButton.addEventListener('click', () => {
+    // 활성화된 역할 버튼 가져오기
+    const activeButton = document.querySelector('.role-button.active');
+    const selectedRole = activeButton ? activeButton.getAttribute('data-role') : null;
+    const applicationNoteValue = applicationNote.value.trim();
+
+    // 필요한 데이터가 없는 경우 경고
+    if (!currentSelectedProject || !selectedRole || !applicationNoteValue) {
+        alert('지원 유형과 지원서를 모두 작성해주세요.');
+        return;
+    }
+
+    // WebSocket을 통해 서버로 메시지 전송
+    const message = {
+        action: 'submitApplication', // 서버에서 처리할 액션
+        projectOwnerId: currentSelectedProject.ownerId, // 프로젝트 소유자 ID
+        applicantId: userName, // 지원자 이름
+        userId, // 지원자 ID
+        projectName: currentSelectedProject.projectName, // 프로젝트 이름
+        role: selectedRole, // 선택한 역할
+        note: applicationNoteValue, // 지원서 내용
+        projectId: currentSelectedProject.projectId || 'default-room-id', // 프로젝트 ID
+    };
+
+    // WebSocket 메시지 전송
+    ws.send(JSON.stringify(message));
+
+    // 완료 메시지 및 팝업 닫기
+    alert('지원이 완료되었습니다!');
+    closeProjectPopup();
+    resetApplicationForm();
+});
+
+
+// 팝업 닫기
 function closeProjectPopup() {
     document.getElementById('project-popup').style.display = 'none';
     resetApplicationForm(); // 초기화
 }
 
-// 바깥 클릭 시 팝업 닫기
-window.addEventListener('click', (event) => {
-    const popup = document.getElementById('project-popup');
-    if (event.target === popup) {
-        closeProjectPopup();
+// 지원 양식 초기화
+function resetApplicationForm() {
+    document.querySelectorAll('.role-button').forEach((button) => button.classList.remove('active'));
+    applicationNote.value = '';
+    applicationSection.style.display = 'none'; // 지원 영역 숨김
+}
+
+// 초기화 및 WebSocket 연결
+document.addEventListener('DOMContentLoaded', () => {
+    connectWebSocket();
+    fetchProjects();
+
+    // 닫기 버튼 이벤트 리스너 등록
+    const closePopupButton = document.getElementById('close-popup');
+    if (closePopupButton) {
+        closePopupButton.addEventListener('click', () => {
+            console.log("닫기 버튼 클릭");
+            closeProjectPopup();
+        });
+    }
+
+    // "지원하기" 버튼 이벤트 리스너
+    const applyButton = document.getElementById('apply-button');
+    if (applyButton) {
+        applyButton.addEventListener('click', () => {
+            console.log("지원하기 버튼 클릭");
+            // 지원 영역 표시
+            applicationSection.style.display = 'block';
+        });
     }
 });
 
-// 팝업 닫기 및 초기화 함수
-function closeProjectPopup() {
-    document.getElementById('project-popup').style.display = 'none';
-
-    // 지원 영역 초기화
-    resetApplicationForm();
-}
-
-// 탭 변경 이벤트 처리
-document.querySelectorAll('.nav-link').forEach((tab) => {
-    tab.addEventListener('shown.bs.tab', () => {
-        fetchProjects(); // 탭 전환 시 데이터 가져오기
-    });
-});
-
-// 페이지 로드 시 WebSocket 연결
-window.onload = () => {
-    connectWebSocket();
-    fetchProjects();
-};
