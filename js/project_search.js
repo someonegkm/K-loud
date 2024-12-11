@@ -85,9 +85,10 @@ function connectWebSocket() {
 
 
 // 데이터 가져오기
+// 수정된 fetchProjects 함수
 async function fetchProjects() {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(`${API_URL}?userId=${userId}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
@@ -229,7 +230,7 @@ function addProjectCardListeners(projectCards, projects) {
     });
 }
 
-// 프로젝트 불러오기
+// 프로젝트 렌더링 수정
 function renderProjects(projects) {
     console.log('렌더링할 프로젝트 데이터:', projects); // 프로젝트 데이터 확인
 
@@ -249,10 +250,8 @@ function renderProjects(projects) {
 
     // 프로젝트 카드 생성
     filteredProjects.forEach((project, index) => {
-        console.log('현재 프로젝트 데이터:', project); // 각 프로젝트 데이터 확인
-
-        // 남은 인원 계산
-        const remainingSlots = project.maxTeamSize - (project.roles?.length || 0);
+        const remainingSlots = project.maxTeamSize - (project.participants?.length || 0);
+        const isParticipated = project.isParticipated; // Lambda 응답에서 isParticipated 가져오기
 
         const projectCard = `
             <div class="project-card" data-index="${index}">
@@ -260,6 +259,11 @@ function renderProjects(projects) {
                 <small>프로젝트 유형: ${project.projectType}</small>
                 <br>
                 <small>모집 인원: ${remainingSlots}/${project.maxTeamSize}</small>
+                ${
+                    isParticipated
+                        ? '<small>이미 참여한 프로젝트입니다.</small>'
+                        : ''
+                }
             </div>
         `;
 
@@ -290,12 +294,8 @@ function renderProjects(projects) {
     addProjectCardListeners(planningCards, filteredProjects);
 }
 
-
-
-
-
-
 // 프로젝트 카드 클릭 이벤트 수정
+// 팝업 수정
 function openProjectPopup(project) {
     if (!project) {
         console.error('잘못된 프로젝트 데이터:', project);
@@ -338,6 +338,9 @@ function openProjectPopup(project) {
         applicationRoles.appendChild(roleButton);
     });
 
+    // 지원하기 버튼 비활성화
+    applyButton.disabled = project.isParticipated; // 이미 참여한 경우 비활성화
+
     // 지원 영역 초기화
     resetApplicationForm();
 
@@ -346,10 +349,11 @@ function openProjectPopup(project) {
 }
 
 
-// 팝업 닫기
-document.getElementById('close-popup').addEventListener('click', () => {
-    closeProjectPopup();
-});
+// 팝업 닫기 수정
+function closeProjectPopup() {
+    document.getElementById('project-popup').style.display = 'none';
+    resetApplicationForm(); // 초기화
+}
 
 // 바깥 클릭 시 팝업 닫기
 window.addEventListener('click', (event) => {
