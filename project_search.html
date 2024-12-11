@@ -154,33 +154,37 @@
 
   <!-- end about section -->
   <!-- 팝업 HTML 구조 추가 -->
-  <div id="project-popup" style="display: none;">
-    <div>
-        <button id="close-popup">닫기</button>
-        <h3 id="popup-title"></h3>
-        <p id="popup-description"></p>
-        <p><strong>기술 스택:</strong> <span id="popup-techstack"></span></p>
-        <p><strong>프로젝트 유형:</strong> <span id="popup-type"></span></p>
-        <p><strong>생성 날짜:</strong> <span id="popup-created"></span></p>
-        <button id="apply-button">지원하기</button>
+  <div id="project-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; max-height: 80%; overflow-y: auto; background: white; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); z-index: 9999; padding: 20px;">
+    <button id="close-popup" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 16px; cursor: pointer;">&times;</button>
+    <h3 id="popup-title" style="margin-bottom: 20px;"></h3>
+    <hr>
+    <h4>모집 유형</h4>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        <li><strong>프로젝트 유형:</strong> <span id="popup-type"></span></li>
+        <li><strong>기술 스택:</strong> <span id="popup-techstack"></span></li>
+        <li><strong>모집 인원:</strong> <span id="popup-recruitment"></span></li>
+        <li><strong>소요 기간:</strong> <span id="popup-duration"></span></li>
+    </ul>
+    <hr>
+    <h4>내용</h4>
+    <p id="popup-description" style="white-space: pre-wrap; line-height: 1.5;"></p>
+    <button id="apply-button" class="btn btn-primary" style="margin-top: 20px;">지원하기</button>
 
-        <!-- 지원 세부 정보 입력 폼 -->
-        <div id="application-section" style="display: none; margin-top: 20px;">
-            <h4>지원 유형 선택</h4>
-            <div id="application-roles">
-              <div id="application-roles" class="roles-container">
-                <button class="role-button" data-role="frontend">프론트엔드</button>
-                <button class="role-button" data-role="backend">백엔드</button>
-                <button class="role-button" data-role="design">디자인</button>
-                <button class="role-button" data-role="pm">기획</button>
-              </div>
-            </div>
-
-            <h4>지원서 작성</h4>
-            <textarea id="application-note" placeholder="지원서를 입력하세요" style="width: 100%; height: 100px;"></textarea>
-            <button id="submit-application" class="btn btn-primary" style="margin-top: 10px;">지원 제출</button>
+    <!-- 지원 세부 정보 입력 폼 -->
+    <div id="application-section" style="display: none; margin-top: 20px;">
+        <h4>지원 유형 선택</h4>
+        <div id="application-roles" class="roles-container" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="role-button" data-role="frontend">프론트엔드</button>
+            <button class="role-button" data-role="backend">백엔드</button>
+            <button class="role-button" data-role="design">디자인</button>
+            <button class="role-button" data-role="pm">기획</button>
         </div>
+
+        <h4 style="margin-top: 20px;">지원서 작성</h4>
+        <textarea id="application-note" placeholder="지원서를 입력하세요" style="width: 100%; height: 100px;"></textarea>
+        <button id="submit-application" class="btn btn-primary" style="margin-top: 10px;">지원 제출</button>
     </div>
+</div>
 </div>
 
 

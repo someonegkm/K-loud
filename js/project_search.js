@@ -189,8 +189,11 @@ submitApplicationButton.addEventListener('click', () => {
 function resetApplicationForm() {
     const roleButtons = document.querySelectorAll('.role-button');
     roleButtons.forEach((button) => button.classList.remove('active'));
-    applicationNote.value = '';
+
+    document.getElementById('application-note').value = ''; // 지원서 초기화
+    document.getElementById('application-section').style.display = 'none'; // 지원 영역 숨기기
 }
+
 
 // 버튼 활성화 토글 (하나만 선택 가능)
 applicationRoles.addEventListener('click', (event) => {
@@ -294,56 +297,75 @@ function renderProjects(projects) {
 
 // 프로젝트 카드 클릭 이벤트 수정
 function openProjectPopup(project) {
-    ensureLoggedIn(() => {
-        if (!project) {
-            console.error('잘못된 프로젝트 데이터:', project);
-            alert('프로젝트 데이터를 불러올 수 없습니다.');
-            return;
+    if (!project) {
+        console.error('잘못된 프로젝트 데이터:', project);
+        alert('프로젝트 데이터를 불러올 수 없습니다.');
+        return;
+    }
+
+    currentSelectedProject = project;
+
+    // 팝업 내용 채우기
+    document.getElementById('popup-title').textContent = project.projectName || '프로젝트 이름 없음';
+    document.getElementById('popup-type').textContent = project.projectType || '유형 없음';
+    document.getElementById('popup-techstack').textContent = project.techStack ? project.techStack.join(', ') : '기술 스택 없음';
+    document.getElementById('popup-recruitment').textContent = `${project.maxTeamSize || 0}명`;
+    document.getElementById('popup-duration').textContent = `${project.projectDuration || 0}일`;
+    document.getElementById('popup-description').textContent = project.projectDescription || '내용이 없습니다.';
+
+    // 역할 버튼 생성
+    const applicationRoles = document.getElementById('application-roles');
+    applicationRoles.innerHTML = ''; // 기존 역할 초기화
+
+    project.roles.forEach((role) => {
+        const isDisabled = project.disabledRoles && project.disabledRoles.includes(role); // 비활성화 확인
+        const roleButton = document.createElement('button');
+        roleButton.className = `role-button ${isDisabled ? 'disabled' : ''}`;
+        roleButton.textContent = roleDisplayNames[role] || role; // 역할 이름 매핑
+        roleButton.dataset.role = role;
+
+        if (isDisabled) {
+            roleButton.disabled = true; // 클릭 불가능
+            roleButton.title = '이 역할은 지원할 수 없습니다.'; // 경고 메시지
+        } else {
+            // 활성화된 버튼 클릭 이벤트 추가
+            roleButton.addEventListener('click', () => {
+                document.querySelectorAll('.role-button').forEach((btn) => btn.classList.remove('active'));
+                roleButton.classList.add('active');
+            });
         }
 
-        // 현재 선택된 프로젝트 저장
-        currentSelectedProject = project;
-
-        // 팝업 데이터 설정
-        popupTitle.textContent = project.projectName || '프로젝트 이름 없음';
-        popupDescription.textContent = project.projectDescription || '설명이 없습니다.';
-        popupTechStack.textContent = project.techStack ? project.techStack.join(', ') : '기술 스택 없음';
-        popupType.textContent = project.projectType || '유형 없음';
-        popupCreated.textContent = project.createdAt || '생성 날짜 없음';
-
-        // 역할 버튼 생성
-        applicationRoles.innerHTML = ''; // 이전 역할 초기화
-        project.roles.forEach((role) => {
-            const isDisabled = project.disabledRoles && project.disabledRoles.includes(role); // 비활성화 확인
-            const roleButton = document.createElement('button');
-            roleButton.className = `role-button ${isDisabled ? 'disabled' : ''}`;
-            roleButton.textContent = roleDisplayNames[role] || role; // 매핑된 이름 표시
-            roleButton.dataset.role = role;
-
-            if (isDisabled) {
-                roleButton.disabled = true; // 클릭 불가능
-                roleButton.title = '이 역할은 지원할 수 없습니다.'; // 경고 메시지
-            } else {
-                // 활성화된 버튼 클릭 이벤트 추가
-                roleButton.addEventListener('click', () => {
-                    document.querySelectorAll('.role-button').forEach((btn) => btn.classList.remove('active'));
-                    roleButton.classList.add('active');
-                });
-            }
-
-            applicationRoles.appendChild(roleButton);
-        });
-
-        // 팝업 표시
-        popup.style.display = 'block';
-
-        // 초기화
-        applicationSection.style.display = 'none'; // 지원 영역 숨김
-        resetApplicationForm(); // 지원 양식 초기화
+        applicationRoles.appendChild(roleButton);
     });
+
+    // 지원 영역 초기화
+    resetApplicationForm();
+
+    // 팝업 표시
+    document.getElementById('project-popup').style.display = 'block';
 }
 
 
+// 팝업 닫기
+document.getElementById('close-popup').addEventListener('click', () => {
+    closeProjectPopup();
+});
+
+// 바깥 클릭 시 팝업 닫기
+window.addEventListener('click', (event) => {
+    const popup = document.getElementById('project-popup');
+    if (event.target === popup) {
+        closeProjectPopup();
+    }
+});
+
+// 팝업 닫기 및 초기화 함수
+function closeProjectPopup() {
+    document.getElementById('project-popup').style.display = 'none';
+
+    // 지원 영역 초기화
+    resetApplicationForm();
+}
 
 // 탭 변경 이벤트 처리
 document.querySelectorAll('.nav-link').forEach((tab) => {
