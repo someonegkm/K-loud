@@ -11,6 +11,13 @@ const applicationSection = document.getElementById('application-section');
 const applicationRoles = document.getElementById('application-roles');
 const applicationNote = document.getElementById('application-note');
 const submitApplicationButton = document.getElementById('submit-application');
+const roleDisplayNames = {
+    frontend: "프론트엔드",
+    backend: "백엔드",
+    design: "디자인",
+    pm: "기획"
+};
+
 
 // 전역 변수
 let currentSelectedProject = null; // 현재 선택된 프로젝트
@@ -219,6 +226,7 @@ function addProjectCardListeners(projectCards, projects) {
     });
 }
 
+// 프로젝트 불러오기
 function renderProjects(projects) {
     console.log('렌더링할 프로젝트 데이터:', projects); // 프로젝트 데이터 확인
 
@@ -233,15 +241,22 @@ function renderProjects(projects) {
     designContainer.innerHTML = '';
     planningContainer.innerHTML = '';
 
+    // 모집 인원이 0보다 큰 프로젝트만 필터링
+    const filteredProjects = projects.filter((project) => project.maxTeamSize > 0);
+
     // 프로젝트 카드 생성
-    projects.forEach((project, index) => {
+    filteredProjects.forEach((project, index) => {
         console.log('현재 프로젝트 데이터:', project); // 각 프로젝트 데이터 확인
+
+        // 남은 인원 계산
+        const remainingSlots = project.maxTeamSize - (project.roles?.length || 0);
 
         const projectCard = `
             <div class="project-card" data-index="${index}">
                 <h5>${project.projectName}</h5>
-                <p>${project.projectDescription}</p>
-                <small>기술 스택: ${project.techStack.join(', ')}</small>
+                <small>프로젝트 유형: ${project.projectType}</small>
+                <br>
+                <small>모집 인원: ${remainingSlots}/${project.maxTeamSize}</small>
             </div>
         `;
 
@@ -266,11 +281,15 @@ function renderProjects(projects) {
     const planningCards = Array.from(planningContainer.querySelectorAll('.project-card'));
 
     // 이벤트 리스너 등록
-    addProjectCardListeners(frontendCards, projects);
-    addProjectCardListeners(backendCards, projects);
-    addProjectCardListeners(designCards, projects);
-    addProjectCardListeners(planningCards, projects);
+    addProjectCardListeners(frontendCards, filteredProjects);
+    addProjectCardListeners(backendCards, filteredProjects);
+    addProjectCardListeners(designCards, filteredProjects);
+    addProjectCardListeners(planningCards, filteredProjects);
 }
+
+
+
+
 
 
 // 프로젝트 카드 클릭 이벤트 수정
@@ -285,11 +304,35 @@ function openProjectPopup(project) {
         // 현재 선택된 프로젝트 저장
         currentSelectedProject = project;
 
+        // 팝업 데이터 설정
         popupTitle.textContent = project.projectName || '프로젝트 이름 없음';
         popupDescription.textContent = project.projectDescription || '설명이 없습니다.';
         popupTechStack.textContent = project.techStack ? project.techStack.join(', ') : '기술 스택 없음';
         popupType.textContent = project.projectType || '유형 없음';
         popupCreated.textContent = project.createdAt || '생성 날짜 없음';
+
+        // 역할 버튼 생성
+        applicationRoles.innerHTML = ''; // 이전 역할 초기화
+        project.roles.forEach((role) => {
+            const isDisabled = project.disabledRoles && project.disabledRoles.includes(role); // 비활성화 확인
+            const roleButton = document.createElement('button');
+            roleButton.className = `role-button ${isDisabled ? 'disabled' : ''}`;
+            roleButton.textContent = roleDisplayNames[role] || role; // 매핑된 이름 표시
+            roleButton.dataset.role = role;
+
+            if (isDisabled) {
+                roleButton.disabled = true; // 클릭 불가능
+                roleButton.title = '이 역할은 지원할 수 없습니다.'; // 경고 메시지
+            } else {
+                // 활성화된 버튼 클릭 이벤트 추가
+                roleButton.addEventListener('click', () => {
+                    document.querySelectorAll('.role-button').forEach((btn) => btn.classList.remove('active'));
+                    roleButton.classList.add('active');
+                });
+            }
+
+            applicationRoles.appendChild(roleButton);
+        });
 
         // 팝업 표시
         popup.style.display = 'block';
@@ -299,6 +342,8 @@ function openProjectPopup(project) {
         resetApplicationForm(); // 지원 양식 초기화
     });
 }
+
+
 
 // 탭 변경 이벤트 처리
 document.querySelectorAll('.nav-link').forEach((tab) => {

@@ -42,7 +42,8 @@ document.getElementById('saveProjectButton').addEventListener('click', async fun
     const ownerId = document.getElementById('ownerId').value;
     const techStack = document.getElementById('techStack').value;
     const projectType = document.getElementById('projectType').value;
-    const minExperience = document.getElementById('minExperience').value;
+    const maxTeamSize = document.getElementById('maxTeamSize').value; // 모집 인원
+    const projectDuration = document.getElementById('projectDuration').value; // 소요 기간
 
     // 선택된 필요한 역할 가져오기
     const roles = getSelectedRoles();
@@ -60,7 +61,8 @@ document.getElementById('saveProjectButton').addEventListener('click', async fun
         ownerId: ownerId,
         techStack: techStack.split(',').map(s => s.trim()),
         projectType: projectType,
-        minExperience: parseInt(minExperience, 10),
+        maxTeamSize: parseInt(maxTeamSize, 10), // 추가된 필드
+        projectDuration: parseInt(projectDuration, 10), // 추가된 필드
         roles: roles, // 선택된 역할 추가
         createdAt: formattedDate,
     };
