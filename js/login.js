@@ -1,10 +1,11 @@
 // AWS Cognito 설정
 const poolData = {
-  UserPoolId: 'ap-northeast-2_AOgRZ1a3u', // 실제 사용자 풀 ID로 변경하세요
-  ClientId: '5o12nbraveo9g0g3l7k71njh7k',  // 실제 앱 클라이언트 ID로 변경하세요
+  UserPoolId: 'ap-northeast-2_AOgRZ1a3u',
+  ClientId: '5o12nbraveo9g0g3l7k71njh7k',
 };
 
 const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
 let container = document.getElementById('container');
 
 // 화면 전환 함수
@@ -18,69 +19,48 @@ setTimeout(() => {
   container.classList.add('sign-in');
 }, 200);
 
-let isCodeSent = false; // 코드 전송 여부를 확인하기 위한 플래그
+// 전역 변수로 id 선언
+let id = '';
 
-// 로그인 기능
-function login() {
-  const signinId = document.getElementById('signin-id').value.trim();
-  const signinPassword = document.getElementById('signin-password').value.trim();
-  const signinErrorElement = document.getElementById('signin-error');
-
-  if (!signinId || !signinPassword) {
-    signinErrorElement.textContent = '아이디와 비밀번호를 모두 입력해주세요.';
-    signinErrorElement.style.color = 'red';
-    signinErrorElement.style.display = 'block';
-    return;
-  }
-
-  const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
-    Username: signinId,
-    Password: signinPassword,
-  });
-
-  const userData = {
-    Username: signinId,
-    Pool: userPool,
-  };
-
-  const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
-
-  cognitoUser.authenticateUser(authenticationDetails, {
-    onSuccess: function (result) {
-      const accessToken = result.getAccessToken().getJwtToken();
-      const idToken = result.getIdToken().getJwtToken();
-      console.log('로그인 성공, 액세스 토큰:', accessToken);
-
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('idToken', idToken);
-
-      signinErrorElement.textContent = '로그인 성공!';
-      signinErrorElement.style.color = 'green';
-      signinErrorElement.style.display = 'block';
-
-      window.location.href = 'index.html';
-    },
-    onFailure: function (err) {
-      console.error('로그인 실패:', err);
-      signinErrorElement.textContent = err.message || JSON.stringify(err);
-      signinErrorElement.style.color = 'red';
-      signinErrorElement.style.display = 'block';
-    },
-  });
-}
-
-// 회원가입 기능
+// 회원가입 폼 검증 및 처리 로직
 document.getElementById('signup-button').addEventListener('click', function (e) {
   e.preventDefault();
-  const id = document.getElementById('signup-id').value.trim();
+  id = document.getElementById('signup-id').value.trim();
   const username = document.getElementById('signup-username').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value.trim();
   const confirmPassword = document.getElementById('signup-confirm-password').value.trim();
   const errorElement = document.getElementById('signup-error');
 
+  // 정규식 패턴
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$])[A-Za-z\d!@#$]{8,20}$/;
+  const idPattern = /^[a-zA-Z0-9]+$/;
+
+  // 입력값 검증
   if (!id || !username || !email || !password || !confirmPassword) {
     errorElement.textContent = '모든 입력란을 작성해주세요.';
+    errorElement.style.color = 'red';
+    errorElement.style.display = 'block';
+    return;
+  }
+
+  if (!idPattern.test(id)) {
+    errorElement.textContent = '아이디는 영어와 숫자만 입력할 수 있습니다.';
+    errorElement.style.color = 'red';
+    errorElement.style.display = 'block';
+    return;
+  }
+
+  if (!emailPattern.test(email)) {
+    errorElement.textContent = '올바른 이메일 형식을 입력해주세요.';
+    errorElement.style.color = 'red';
+    errorElement.style.display = 'block';
+    return;
+  }
+
+  if (!passwordPattern.test(password)) {
+    errorElement.textContent = '비밀번호는 8~20자, 대문자와 특수문자(!@#$)를 포함해야 합니다.';
     errorElement.style.color = 'red';
     errorElement.style.display = 'block';
     return;
@@ -109,36 +89,28 @@ document.getElementById('signup-button').addEventListener('click', function (e) 
       errorElement.style.display = 'block';
       return;
     }
-
-    errorElement.textContent = '이메일로 전송된 확인 코드를 입력해주세요.';
+    const cognitoUser = result.user;
+    errorElement.textContent = '회원가입이 완료되었습니다. 이메일로 전송된 확인 코드를 입력해주세요.';
     errorElement.style.color = 'green';
     errorElement.style.display = 'block';
-
     document.getElementById('verification-code-group').style.display = 'block';
     document.getElementById('verify-button').style.display = 'block';
     document.getElementById('signup-button').disabled = true;
   });
 });
 
-// 확인 코드 제출
+// 확인 코드 제출 처리 로직 추가
 document.getElementById('verify-button').addEventListener('click', function (e) {
   e.preventDefault();
   const verificationCode = document.getElementById('verification-code').value.trim();
   const errorElement = document.getElementById('signup-error');
-  const id = document.getElementById('signup-id').value.trim();
-
   if (!verificationCode) {
     errorElement.textContent = '확인 코드를 입력해주세요.';
     errorElement.style.color = 'red';
     errorElement.style.display = 'block';
     return;
   }
-
-  const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-    Username: id,
-    Pool: userPool,
-  });
-
+  const cognitoUser = new AmazonCognitoIdentity.CognitoUser({ Username: id, Pool: userPool });
   cognitoUser.confirmRegistration(verificationCode, true, function (err, result) {
     if (err) {
       errorElement.textContent = err.message || JSON.stringify(err);
@@ -146,94 +118,60 @@ document.getElementById('verify-button').addEventListener('click', function (e) 
       errorElement.style.display = 'block';
       return;
     }
-
-    // 회원가입 성공 메시지 표시
-    errorElement.textContent = '회원가입이 완료되었습니다. 잠시 후 로그인 화면으로 이동합니다.';
+    errorElement.textContent = '계정이 성공적으로 확인되었습니다. 이제 로그인할 수 있습니다.';
     errorElement.style.color = 'green';
     errorElement.style.display = 'block';
-
-    // 3초 뒤에 로그인 화면으로 전환
-    setTimeout(() => {
-      resetToLoginState(); // 로그인 상태로 복구
-      document.getElementById('container').classList.add('sign-in'); // 화면 전환 (sign-in 활성화)
-      document.getElementById('container').classList.remove('sign-up'); // sign-up 비활성화
-    }, 3000);;
+    document.getElementById('verification-code-group').style.display = 'none';
+    document.getElementById('verify-button').style.display = 'none';
+    document.getElementById('signup-form').reset();
+    document.getElementById('signup-button').disabled = false;
   });
 });
 
-// 비밀번호 재설정
-document.getElementById('forgot-password-link').addEventListener('click', function (e) {
-  e.preventDefault();
+// 로그인 폼 검증 및 처리 로직
+document.getElementById('signin-button').addEventListener('click', handleSignIn);
 
-  const forgotPasswordLink = document.getElementById('forgot-password-link');
-  const signinButton = document.getElementById('signin-button');
-  const signinPassword = document.getElementById('signin-password');
-  const signinError = document.getElementById('signin-error');
-  const socialLoginBox = document.getElementById('social-login'); // 소셜 로그인 영역
-
-  if (forgotPasswordLink.textContent === '비밀번호를 잊어버리셨나요?') {
-    // 비밀번호 재설정 상태로 전환
-    forgotPasswordLink.textContent = '로그인 창으로';
-
-    signinButton.textContent = '코드 전송';
-    signinButton.onclick = sendResetCode;
-
-    // 비밀번호 필드 숨기고 이메일 필드 추가
-    signinPassword.style.display = 'none';
-    const signinEmail = document.createElement('input');
-    signinEmail.type = 'email';
-    signinEmail.id = 'signin-email';
-    signinEmail.placeholder = '이메일';
-    signinPassword.parentNode.appendChild(signinEmail);
-
-    signinError.textContent = '';
-
-    // 소셜 로그인 숨기기
-    if (socialLoginBox) {
-      socialLoginBox.style.display = 'none';
+// "엔터" 키 입력 시 로그인
+['signin-id', 'signin-password'].forEach((id) => {
+  document.getElementById(id).addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleSignIn();
     }
-  } else {
-    // 로그인 상태로 복구
-    resetToLoginState();
-  }
+  });
 });
 
-
-// 비밀번호 변경
-function sendResetCode() {
-  if (isCodeSent) {
-    const signinErrorElement = document.getElementById('signin-error');
-    signinErrorElement.textContent = '이미 코드가 전송되었습니다. 이메일을 확인해주세요.';
-    signinErrorElement.style.color = 'red';
-    signinErrorElement.style.display = 'block';
-    return;
-  }
-
-  const id = document.getElementById('signin-id').value.trim();
-  const email = document.getElementById('signin-email').value.trim();
+// 로그인 처리 함수
+function handleSignIn() {
+  const signinId = document.getElementById('signin-id').value.trim();
+  const signinPassword = document.getElementById('signin-password').value.trim();
   const signinErrorElement = document.getElementById('signin-error');
 
-  if (!id || !email) {
-    signinErrorElement.textContent = '아이디와 이메일을 모두 입력해주세요.';
+  if (!signinId || !signinPassword) {
+    signinErrorElement.textContent = '아이디와 비밀번호를 모두 입력해주세요.';
     signinErrorElement.style.color = 'red';
     signinErrorElement.style.display = 'block';
     return;
   }
 
-  const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-    Username: id,
-    Pool: userPool,
+  const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails({
+    Username: signinId,
+    Password: signinPassword,
   });
 
-  cognitoUser.forgotPassword({
-    onSuccess: function (data) {
-      console.log('코드 전송 성공:', data);
-      signinErrorElement.textContent = '확인 코드가 이메일로 전송되었습니다.';
+  const userData = { Username: signinId, Pool: userPool };
+  const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
+  cognitoUser.authenticateUser(authenticationDetails, {
+    onSuccess: function (result) {
+      const accessToken = result.getAccessToken().getJwtToken();
+      const idToken = result.getIdToken().getJwtToken();
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('idToken', idToken);
+      signinErrorElement.textContent = '로그인 성공!';
       signinErrorElement.style.color = 'green';
       signinErrorElement.style.display = 'block';
-
-      isCodeSent = true; // 코드 전송 완료 상태로 변경
-      displayResetPasswordFields();
+      window.location.href = 'index.html';
     },
     onFailure: function (err) {
       signinErrorElement.textContent = err.message || JSON.stringify(err);
@@ -242,171 +180,3 @@ function sendResetCode() {
     },
   });
 }
-
-// 비밀번호 변경 필드 표시
-function displayResetPasswordFields() {
-  // 아이디 입력 필드 비활성화
-  const signinId = document.getElementById('signin-id');
-  signinId.disabled = true;
-
-  // 이메일 입력 필드 비활성화
-  const signinEmail = document.getElementById('signin-email');
-  signinEmail.disabled = true;
-
-  // 확인 코드 입력 필드 추가
-  const resetCodeInput = document.createElement('input');
-  resetCodeInput.type = 'text';
-  resetCodeInput.id = 'reset-code';
-  resetCodeInput.placeholder = '확인 코드';
-  document.getElementById('signin-email').parentNode.appendChild(resetCodeInput);
-
-  // 새 비밀번호 입력 필드 추가
-  const newPasswordInput = document.createElement('input');
-  newPasswordInput.type = 'password';
-  newPasswordInput.id = 'new-password';
-  newPasswordInput.placeholder = '새 비밀번호';
-  document.getElementById('signin-email').parentNode.appendChild(newPasswordInput);
-
-  const confirmPasswordInput = document.createElement('input');
-  confirmPasswordInput.type = 'password';
-  confirmPasswordInput.id = 'confirm-password';
-  confirmPasswordInput.placeholder = '새 비밀번호 확인';
-  document.getElementById('signin-email').parentNode.appendChild(confirmPasswordInput);
-
-  const resetPasswordButton = document.createElement('button');
-  resetPasswordButton.id = 'reset-password-button';
-  resetPasswordButton.textContent = '비밀번호 변경';
-  resetPasswordButton.onclick = resetPassword;
-  document.getElementById('signin-email').parentNode.appendChild(resetPasswordButton);
-}
-
-// 비밀번호 변경 처리
-function resetPassword() {
-  const id = document.getElementById('signin-id').value.trim();
-  const resetCode = document.getElementById('reset-code').value.trim();
-  const newPassword = document.getElementById('new-password').value.trim();
-  const confirmPassword = document.getElementById('confirm-password').value.trim();
-  const signinErrorElement = document.getElementById('signin-error');
-
-  if (!resetCode || !newPassword || !confirmPassword) {
-    signinErrorElement.textContent = '모든 필드를 입력해주세요.';
-    signinErrorElement.style.color = 'red';
-    signinErrorElement.style.display = 'block';
-    return;
-  }
-
-  if (newPassword !== confirmPassword) {
-    signinErrorElement.textContent = '비밀번호가 일치하지 않습니다.';
-    signinErrorElement.style.color = 'red';
-    signinErrorElement.style.display = 'block';
-    return;
-  }
-
-  const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-    Username: id,
-    Pool: userPool,
-  });
-
-  cognitoUser.confirmPassword(resetCode, newPassword, {
-    onSuccess: function () {
-      console.log('비밀번호 변경 성공');
-      signinErrorElement.textContent = '비밀번호가 성공적으로 변경되었습니다. 잠시 후 로그인 화면으로 이동합니다.';
-      signinErrorElement.style.color = 'green';
-      signinErrorElement.style.display = 'block';
-
-      // 3초 후 로그인 화면으로 복구
-      setTimeout(resetToLoginState, 3000);
-    },
-    onFailure: function (err) {
-      console.error('비밀번호 변경 실패:', err);
-      signinErrorElement.textContent = err.message || JSON.stringify(err);
-      signinErrorElement.style.color = 'red';
-      signinErrorElement.style.display = 'block';
-    },
-  });
-}
-
-function goToMain() {
-  // 메인 페이지로 이동
-  window.location.href = 'index.html'; // 메인 페이지 경로로 변경하세요
-}
-
-// 로그아웃 함수 추가
-function signOut() {
-  const cognitoUser = userPool.getCurrentUser();
-  if (cognitoUser != null) {
-    cognitoUser.signOut();
-    // 로컬 스토리지에서 토큰 삭제
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('idToken');
-    alert('로그아웃 되었습니다.');
-    window.location.href = 'login.html'; // 로그인 페이지로 이동
-  } else {
-    alert('로그인된 사용자가 없습니다.');
-  }
-}
-
-// 로그인 버튼 초기화
-function initializeLoginButton() {
-  const signinButton = document.getElementById('signin-button');
-  signinButton.textContent = '로그인'; // 버튼 텍스트 초기화
-  signinButton.onclick = null; // 기존 이벤트 제거
-  signinButton.addEventListener('click', login); // login 함수 연결
-}
-
-// 페이지 로드 시 초기화
-window.onload = function () {
-  initializeLoginButton(); // 로그인 버튼 초기화
-};
-
-
-function resetToLoginState() {
-  const signinButton = document.getElementById('signin-button');
-  signinButton.textContent = '로그인'; // 버튼 텍스트 복구
-  signinButton.onclick = null; // 기존 이벤트 제거
-  signinButton.addEventListener('click', login); // login 함수 다시 연결
-
-  const forgotPasswordLink = document.getElementById('forgot-password-link');
-  forgotPasswordLink.textContent = '비밀번호를 잊어버리셨나요?'; // 링크 텍스트 복구
-
-  // 중복된 이메일 입력 필드 제거
-  const signinEmail = document.getElementById('signin-email');
-  if (signinEmail) signinEmail.remove();
-
-  // 비밀번호 입력 필드 표시
-  const signinPassword = document.getElementById('signin-password');
-  signinPassword.style.display = 'block';
-
-  // 중복된 입력 필드 제거
-  const resetCodeField = document.getElementById('reset-code');
-  const newPasswordField = document.getElementById('new-password');
-  const confirmPasswordField = document.getElementById('confirm-password');
-  const resetPasswordButton = document.getElementById('reset-password-button');
-
-  if (resetCodeField) resetCodeField.remove();
-  if (newPasswordField) newPasswordField.remove();
-  if (confirmPasswordField) confirmPasswordField.remove();
-  if (resetPasswordButton) resetPasswordButton.remove();
-
-  // 아이디 입력 필드 활성화
-  const signinId = document.getElementById('signin-id');
-  signinId.disabled = false; // 수정 가능하도록 설정
-
-  // 소셜 로그인 표시
-  const socialLoginBox = document.getElementById('social-login');
-  if (socialLoginBox) {
-    socialLoginBox.style.display = 'block';
-  }
-
-  // 에러 메시지 초기화
-  const signinError = document.getElementById('signin-error');
-  signinError.textContent = '';
-
-  // 로그인 버튼 다시 초기화
-  initializeLoginButton();
-}
-
-
-
-
-
