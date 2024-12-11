@@ -64,20 +64,35 @@ async function fetchUserProfile() {
         const userProfile = await response.json();
         console.log('가져온 사용자 데이터:', userProfile);
 
-        // 폼 필드에 데이터 채우기
+        // 사용자 프로필 데이터 채우기
         document.getElementById('user-name').value = userProfile.name || '';
         document.getElementById('user-email').value = userProfile.email || '';
         document.getElementById('user-techstack').value = userProfile['user-techstack'] || '';
-        document.getElementById('user-project-preference').value = userProfile['user-project-preference'] || ''; // `<select>` 값 설정
         document.getElementById('user-project-experience').value = userProfile['user-project-experience'] || '';
         document.getElementById('user-github').value = userProfile['user-github'] || '';
         document.getElementById('user-intro').value = userProfile['user-intro'] || '';
+
+        // 선호 프로젝트 유형 데이터 할당
+        const preferences = userProfile['user-project-preference'] || []; // 저장된 배열
+        console.log('Preferences:', preferences);
+
+        if (Array.isArray(preferences)) {
+            preferences.forEach((preference) => {
+                const checkbox = document.querySelector(`#user-project-preference input[value="${preference}"]`);
+                if (checkbox) {
+                    checkbox.checked = true; // 체크박스 체크
+                } else {
+                    console.warn(`체크박스를 찾을 수 없음: ${preference}`);
+                }
+            });
+        } else {
+            console.error('Preferences는 배열이 아닙니다:', preferences);
+        }
     } catch (error) {
         console.error('사용자 데이터 가져오기 오류:', error);
         alert('사용자 데이터를 가져오는 중 오류가 발생했습니다.');
     }
 }
-
 
 // 사용자 프로젝트 데이터 가져오기
 async function fetchUserProjects() {
@@ -218,11 +233,6 @@ function renderMyProjects(projects) {
     });
 }
 
-
-
-
-
-
 // 사용자 정보 저장
 function attachFormSubmitEvent() {
     const form = document.getElementById('profile-form');
@@ -235,7 +245,10 @@ function attachFormSubmitEvent() {
             name: document.getElementById('user-name').value,
             email: document.getElementById('user-email').value,
             user_techstack: document.getElementById('user-techstack').value,
-            user_project_preference: document.getElementById('user-project-preference').value, // `<select>` 값 가져오기
+            // 체크박스에서 선택된 값 수집
+            user_project_preference: Array.from(
+                document.querySelectorAll('#user-project-preference input[type="checkbox"]:checked')
+            ).map((checkbox) => checkbox.value),
             user_project_experience: document.getElementById('user-project-experience').value,
             user_github: document.getElementById('user-github').value,
             user_intro: document.getElementById('user-intro').value,
@@ -269,11 +282,6 @@ function attachFormSubmitEvent() {
         }
     });
 }
-
-
-
-
-
 
 // 내비게이션 바 업데이트 함수
 function updateNavBar() {
