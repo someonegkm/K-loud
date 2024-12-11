@@ -980,6 +980,20 @@ a:focus {
   font-size: 14px;
 }
 
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.checkbox-grid label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+}
+
+
 .btn-primary {
   background-color: #00bbf0;
   border: none;
@@ -1142,7 +1156,13 @@ a:focus {
   color: white;
 }
 
-/* 알림 스타일 */
+.role-button.disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+
 .notification {
   opacity: 1;
   display: flex;
@@ -1164,5 +1184,17 @@ a:focus {
   cursor: pointer;
 }
 
+/* 알림 페이지 */
+.alert-item {
+  background: #ffffff;
+  border: 2px solid #4CAF50;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+}
 
+.alert-item:hover {
+  background: #f0f8f5;
+}
 /* End of style.css */
