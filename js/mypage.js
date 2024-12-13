@@ -130,15 +130,42 @@ function renderUserProjects(projects) {
 
     projects.forEach(project => {
         const projectElement = document.createElement('div');
-        projectElement.className = 'project-item'; // CSS 클래스 추가
+        projectElement.className = 'project-item';
+        projectElement.style.border = '1px solid #ccc';
+        projectElement.style.padding = '10px';
+        projectElement.style.marginBottom = '10px';
+
         projectElement.innerHTML = `
-            <h4>${project.projectName}</h4>
-            <p><strong>설명:</strong> ${project.projectDescription}</p>
-            <p><strong>기술 스택:</strong> ${project.techStack.join(', ')}</p>
-            <p><strong>유형:</strong> ${project.projectType}</p>
-            <p><strong>생성 일시:</strong> ${project.createdAt}</p>
-            <button class="btn btn-danger btn-sm" onclick="deleteProject('${project.projectId}')">삭제</button>
+            <h4>${project.projectName || '프로젝트 이름 없음'}</h4>
+            <p><strong>설명:</strong> ${project.projectDescription || '설명 없음'}</p>
+            <p><strong>기술 스택:</strong> ${project.techStack ? project.techStack.join(', ') : '없음'}</p>
+            <p><strong>유형:</strong> ${project.projectType || '유형 없음'}</p>
+            <p><strong>생성 일시:</strong> ${project.createdAt || '알 수 없음'}</p>
         `;
+
+        // 참가 인원 정보 추가
+        const participants = project.participants || [];
+        const participantsContainer = document.createElement('div');
+        participantsContainer.style.marginTop = '10px';
+
+        if (participants.length > 0) {
+            participantsContainer.innerHTML = `
+                <h5>참가한 인원:</h5>
+                <ul>
+                    ${participants.map(participant => `
+                        <li>
+                            <strong>ID:</strong> ${participant.applicantId}<br>
+                            <strong>역할:</strong> ${participant.role}<br>
+                            <button class="btn btn-warning btn-sm" onclick="removeParticipant('${project.projectId}', '${participant.applicantId}')">내쫓기</button>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+        } else {
+            participantsContainer.innerHTML = '<p>참가한 인원이 없습니다.</p>';
+        }
+
+        projectElement.appendChild(participantsContainer); // 참가 인원 추가
         projectsContainer.appendChild(projectElement);
     });
 }
@@ -169,6 +196,35 @@ async function deleteProject(projectId) {
         alert('프로젝트를 삭제하는 중 오류가 발생했습니다.');
     }
 }
+
+// 프로젝트 참여한 인원 삭제
+async function removeParticipant(projectId, applicantId) {
+    if (!confirm('정말로 이 참가자를 내쫓으시겠습니까?')) {
+        return; // 사용자가 취소를 선택한 경우
+    }
+
+    try {
+        const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/removeParticipant', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('idToken')}`
+            },
+            body: JSON.stringify({ projectId, applicantId })
+        });
+
+        if (!response.ok) {
+            throw new Error('참가자 삭제 중 문제가 발생했습니다.');
+        }
+
+        alert('참가자가 성공적으로 내쫓겼습니다!');
+        fetchUserProjects(); // 프로젝트 목록 다시 불러오기
+    } catch (error) {
+        console.error('참가자 삭제 오류:', error);
+        alert('참가자를 내쫓는 중 오류가 발생했습니다.');
+    }
+}
+
 
 //사용자가 참여한 프로젝트 가져오기
 async function fetchMyProjects(userId) {
