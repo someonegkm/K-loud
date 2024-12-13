@@ -1,5 +1,6 @@
 let userSub = ''; // Cognito sub 값 저장
 let userId = '';  // 로그인 아이디 (username)
+let currentEditingProjectId = null; // 수정 중인 프로젝트 ID
 
 function populateUserProfile() {
     const cognitoUser = userPool.getCurrentUser();
@@ -141,6 +142,8 @@ function renderUserProjects(projects) {
             <p><strong>기술 스택:</strong> ${project.techStack ? project.techStack.join(', ') : '없음'}</p>
             <p><strong>유형:</strong> ${project.projectType || '유형 없음'}</p>
             <p><strong>생성 일시:</strong> ${project.createdAt || '알 수 없음'}</p>
+            <button class="btn btn-primary btn-sm" onclick='openEditPopup(${JSON.stringify(project)})'>수정</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProject('${project.projectId}')">삭제</button>
         `;
 
         // 참가 인원 정보 추가
@@ -169,6 +172,74 @@ function renderUserProjects(projects) {
         projectsContainer.appendChild(projectElement);
     });
 }
+
+// 수정 팝업 열기
+function openEditPopup(project) {
+    // 현재 수정 중인 프로젝트 ID 저장
+    currentEditingProjectId = project.projectId;
+
+    // 팝업에 기존 데이터 채우기
+    document.getElementById('edit-projectName').value = project.projectName || '';
+    document.getElementById('edit-projectDescription').value = project.projectDescription || '';
+    document.getElementById('edit-techStack').value = project.techStack ? project.techStack.join(', ') : '';
+    document.getElementById('edit-projectType').value = project.projectType || '';
+    document.getElementById('edit-maxTeamSize').value = project.maxTeamSize || 0;
+
+    // 팝업 표시
+    document.getElementById('edit-project-popup').style.display = 'block';
+}
+
+// 팝업 닫기
+function closeEditPopup() {
+    document.getElementById('edit-project-popup').style.display = 'none';
+    currentEditingProjectId = null;
+}
+
+// 수정된 프로젝트 저장
+document.getElementById('saveEditButton').addEventListener('click', async function () {
+    if (!currentEditingProjectId) {
+        alert('수정할 프로젝트를 선택하지 않았습니다.');
+        return;
+    }
+
+    // 수정된 데이터 가져오기
+    const updatedProject = {
+        projectId: currentEditingProjectId,
+        projectName: document.getElementById('edit-projectName').value,
+        projectDescription: document.getElementById('edit-projectDescription').value,
+        techStack: document.getElementById('edit-techStack').value.split(',').map(s => s.trim()),
+        projectType: document.getElementById('edit-projectType').value,
+        maxTeamSize: parseInt(document.getElementById('edit-maxTeamSize').value, 10),
+    };
+
+    console.log('수정된 데이터:', updatedProject);
+
+    try {
+        // API Gateway로 PUT 요청
+        const response = await fetch('https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/updateProject', { // 수정된 API URL
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+            },
+            body: JSON.stringify(updatedProject),
+        });
+
+        if (!response.ok) {
+            throw new Error('프로젝트 수정 중 문제가 발생했습니다.');
+        }
+
+        alert('프로젝트가 성공적으로 수정되었습니다!');
+        closeEditPopup();
+        fetchUserProjects(); // 수정 후 프로젝트 목록 새로고침
+    } catch (error) {
+        console.error('수정 요청 실패:', error);
+        alert('프로젝트 수정 중 오류가 발생했습니다.');
+    }
+});
+
+// 팝업 취소 버튼 클릭 시 닫기
+document.getElementById('cancelEditButton').addEventListener('click', closeEditPopup);
 
 // 프로젝트 삭제
 async function deleteProject(projectId) {

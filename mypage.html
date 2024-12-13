@@ -122,7 +122,40 @@
           <h3>내 프로젝트</h3>
           <div id="user-projects-container">
             <!-- 프로젝트 목록이 여기에 동적으로 추가됩니다 -->
-        </div>
+          </div>
+        </div><!-- 프로젝트 수정 팝업 -->
+        <div id="edit-project-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; width: 50%; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); z-index: 1000; border-radius: 10px;">
+            <h3>프로젝트 수정</h3>
+            <form id="edit-project-form">
+                <div class="form-group">
+                    <label for="edit-projectName">프로젝트 이름</label>
+                    <input type="text" id="edit-projectName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-projectDescription">프로젝트 설명</label>
+                    <textarea id="edit-projectDescription" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-techStack">기술 스택</label>
+                    <input type="text" id="edit-techStack" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-projectType">프로젝트 유형</label>
+                    <select id="edit-projectType" class="form-control">
+                        <option value="Web Development">Web Development</option>
+                        <option value="Mobile App">Mobile App</option>
+                        <option value="AI/Machine Learning">AI/Machine Learning</option>
+                        <option value="Data Science">Data Science</option>
+                        <option value="Game Development">Game Development</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-maxTeamSize">모집 인원</label>
+                    <input type="number" id="edit-maxTeamSize" class="form-control" required>
+                </div>
+                <button type="button" id="saveEditButton" class="btn btn-primary">저장</button>
+                <button type="button" id="cancelEditButton" class="btn btn-secondary">취소</button>
+            </form>
         </div>
   
         <!-- 참여한 프로젝트 -->
