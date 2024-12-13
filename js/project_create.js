@@ -1,6 +1,6 @@
 // UUID 생성 함수
 function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         const r = Math.random() * 16 | 0;
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
@@ -35,18 +35,24 @@ document.querySelectorAll('.role-button').forEach((button) => {
 });
 
 // 방 저장하기 버튼 클릭 이벤트
-document.getElementById('saveProjectButton').addEventListener('click', async function() {
+document.getElementById('saveProjectButton').addEventListener('click', async function () {
     // 입력된 값 가져오기
     const projectName = document.getElementById('projectName').value;
     const projectDescription = document.getElementById('projectDescription').value;
     const ownerId = document.getElementById('ownerId').value;
     const techStack = document.getElementById('techStack').value;
     const projectType = document.getElementById('projectType').value;
-    const maxTeamSize = document.getElementById('maxTeamSize').value; // 모집 인원
-    const projectDuration = document.getElementById('projectDuration').value; // 소요 기간
+    const maxTeamSize = parseInt(document.getElementById('maxTeamSize').value, 10); // 모집 인원
+    const projectDuration = parseInt(document.getElementById('projectDuration').value, 10); // 소요 기간
 
     // 선택된 필요한 역할 가져오기
     const roles = getSelectedRoles();
+
+    // 역할과 모집 인원 검증
+    if (roles.length !== maxTeamSize) {
+        alert(`모집 인원(${maxTeamSize})과 선택된 역할(${roles.length})의 수가 같아야 합니다.`);
+        return; // 프로젝트 생성 중단
+    }
 
     // 생성 일시와 고유 ID 추가
     const now = new Date();
@@ -61,9 +67,9 @@ document.getElementById('saveProjectButton').addEventListener('click', async fun
         ownerId: ownerId,
         techStack: techStack.split(',').map(s => s.trim()),
         projectType: projectType,
-        maxTeamSize: parseInt(maxTeamSize, 10), // 추가된 필드
-        projectDuration: parseInt(projectDuration, 10), // 추가된 필드
-        roles: roles, // 선택된 역할 추가
+        maxTeamSize: maxTeamSize,
+        projectDuration: projectDuration,
+        roles: roles,
         createdAt: formattedDate,
     };
 
@@ -71,7 +77,7 @@ document.getElementById('saveProjectButton').addEventListener('click', async fun
 
     try {
         // API Gateway로 POST 요청
-        const response = await fetch('https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/createproject', { // API Gateway URL을 입력하세요.
+        const response = await fetch('https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/createproject', { // API Gateway URL
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
