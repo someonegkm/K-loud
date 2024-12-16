@@ -17,26 +17,29 @@ function checkLoginStatus() {
   const refreshToken = localStorage.getItem('refreshToken'); // RefreshToken 추가
 
   if (cognitoUser) {
-      // 사용자 세션 확인
       cognitoUser.getSession((err, session) => {
           if (err || !session.isValid()) {
               console.error('세션이 유효하지 않습니다.', err);
               setLoginLink();
               return;
           }
-          // 세션이 유효하면 네비게이션 업데이트
-          updateNavBar(session);
+
+          const idTokenPayload = session.getIdToken().decodePayload(); // ID 토큰에서 페이로드 디코딩
+          const username = idTokenPayload.username || idTokenPayload['cognito:username'] || 'unknown';
+
+          console.log('로그인된 사용자 이름:', username);
+          localStorage.setItem('username', username); // 로컬 스토리지에 저장
+
+          updateNavBar(username); // 네비게이션 상태 업데이트
       });
   } else if (idToken && accessToken) {
       console.log('로컬 스토리지에서 토큰을 가져와 세션을 복원합니다.');
 
-      // ID 토큰에서 고유 사용자 이름 추출
-      const payload = JSON.parse(atob(idToken.split('.')[1]));
-      const username = payload['username'] || 'unknown';
+      const idTokenPayload = JSON.parse(atob(idToken.split('.')[1])); // ID 토큰 디코딩
+      const username = idTokenPayload.username || idTokenPayload['cognito:username'] || 'unknown';
 
-      // 세션 수동 복원
       cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-          Username: username, // ID 토큰에서 추출한 사용자 이름 사용
+          Username: username,
           Pool: userPool,
       });
 
@@ -48,8 +51,9 @@ function checkLoginStatus() {
           })
       );
 
-      console.log('세션이 수동으로 복원되었습니다.');
-      updateNavBar({ isValid: () => true }); // 네비게이션 상태 업데이트
+      console.log('세션이 수동으로 복원되었습니다. 사용자 이름:', username);
+      localStorage.setItem('username', username); // 로컬 스토리지에 저장
+      updateNavBar(username); // 네비게이션 상태 업데이트
   } else {
       console.log('로그인되지 않은 상태입니다.');
       setLoginLink();
@@ -156,18 +160,17 @@ async function fetchUserInfo(accessToken) {
 }
 
 // 로그인 상태 업데이트 함수
-function updateNavBar(session) {
+function updateNavBar(username) {
   const loginLogoutLink = document.getElementById('login-logout-link');
 
-  if (session && session.isValid()) {
-      console.log('로그인 상태 확인됨');
+  if (username) {
+      console.log('네비게이션 상태 업데이트:', username);
       loginLogoutLink.textContent = '로그아웃';
       loginLogoutLink.href = '#';
       loginLogoutLink.onclick = function () {
           signOut();
       };
   } else {
-      console.log('로그아웃 상태');
       setLoginLink();
   }
 }
