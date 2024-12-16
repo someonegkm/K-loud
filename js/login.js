@@ -232,8 +232,11 @@ async function exchangeAuthCodeForTokens(authCode) {
     localStorage.setItem('accessToken', tokens.access_token);
     localStorage.setItem('idToken', tokens.id_token);
 
-    // 사용자 정보 요청
-    fetchUserInfo(tokens.access_token);
+    // 사용자 정보 요청 및 메인 페이지 이동
+    await fetchUserInfo(tokens.access_token);
+
+    // 메인 페이지로 이동
+    window.location.href = 'index.html'; // 메인 화면 경로
   } catch (error) {
     console.error('Error exchanging token:', error);
   }
