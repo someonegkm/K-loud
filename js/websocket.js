@@ -41,60 +41,78 @@ function showNotification(messageContent) {
 
 // WebSocket 연결 함수
 function connectWebSocket(userPool) {
-    const cognitoUser = userPool.getCurrentUser();
+    let cognitoUser = userPool.getCurrentUser();
+    console.log('현재 사용자:', cognitoUser);
 
+    // getCurrentUser()가 null일 경우 세션 복구 시도
     if (!cognitoUser) {
-        console.log('사용자가 로그인하지 않았습니다.');
-        // 토큰이 로컬 스토리지에 있는 경우 수동으로 세션을 복원
+        console.warn('사용자가 로그인하지 않았습니다.');
         const idToken = localStorage.getItem('idToken');
-        if (idToken) {
-            console.log('로컬 스토리지에서 토큰을 가져와 세션을 복원합니다.');
-            // 필요한 작업 추가
-        } else {
-            console.log('사용자가 로그인되지 않았습니다.');
+        const accessToken = localStorage.getItem('accessToken');
+
+        if (!idToken || !accessToken) {
+            console.error('토큰이 없습니다. 로그인이 필요합니다.');
+            return;
         }
+
+        // 세션을 수동으로 복구하는 경우
+        console.log('로컬 스토리지에서 토큰을 가져와 세션을 복원합니다.');
+        cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+            Username: 'unknown', // 실제 Cognito 사용자의 username이 필요합니다.
+            Pool: userPool,
+        });
+
+        // 복구된 사용자로 세션 생성
+        cognitoUser.setSignInUserSession(
+            new AmazonCognitoIdentity.CognitoUserSession({
+                IdToken: new AmazonCognitoIdentity.CognitoIdToken({ IdToken: idToken }),
+                AccessToken: new AmazonCognitoIdentity.CognitoAccessToken({ AccessToken: accessToken }),
+                RefreshToken: new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: '' }), // RefreshToken 필요 시 추가
+            })
+        );
     }
 
-    // Cognito 사용자 ID 가져오기
+    // 세션이 있는 경우 WebSocket 연결 시도
     cognitoUser.getSession((err, session) => {
         if (err) {
             console.error('세션을 가져오는 중 오류 발생:', err);
             return;
         }
 
-        // 사용자 ID 가져오기
-        const userId = cognitoUser.getUsername();
-        console.log('User ID:', userId);
+        if (session.isValid()) {
+            const userId = cognitoUser.getUsername();
+            console.log('WebSocket 연결을 위한 사용자 ID:', userId);
 
-        // WebSocket 연결
-        const wsUrl = `wss://fds9jyxgw7.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
-        ws = new WebSocket(wsUrl);
+            const wsUrl = `wss://fds9jyxgw7.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
+            const ws = new WebSocket(wsUrl);
 
-        ws.onopen = () => {
-            console.log('WebSocket 연결 성공');
-        };
+            ws.onopen = () => {
+                console.log('WebSocket 연결 성공');
+            };
 
-        ws.onmessage = (event) => {
-            console.log('서버로부터 받은 메시지:', event.data);
-            const message = JSON.parse(event.data);
+            ws.onmessage = (event) => {
+                console.log('서버로부터 받은 메시지:', event.data);
+                const message = JSON.parse(event.data);
 
-            // 알림 표시
-            if (message.type === 'applicationNotification') {
-                showNotification(`
-                    지원자: ${message.applicantId}<br>
-                    프로젝트: ${message.projectName}<br>
-                    역할: ${message.role}<br>
-                `);
-            }
-        };
+                if (message.type === 'applicationNotification') {
+                    showNotification(`
+                        지원자: ${message.applicantId}<br>
+                        프로젝트: ${message.projectName}<br>
+                        역할: ${message.role}<br>
+                    `);
+                }
+            };
 
-        ws.onclose = (event) => {
-            console.log('WebSocket 연결이 종료되었습니다. 코드:', event.code, '이유:', event.reason);
-        };
+            ws.onclose = (event) => {
+                console.log('WebSocket 연결이 종료되었습니다. 코드:', event.code, '이유:', event.reason);
+            };
 
-        ws.onerror = (event) => {
-            console.error('WebSocket 에러 발생:', event);
-        };
+            ws.onerror = (event) => {
+                console.error('WebSocket 에러 발생:', event);
+            };
+        } else {
+            console.error('세션이 유효하지 않습니다.');
+        }
     });
 }
 
