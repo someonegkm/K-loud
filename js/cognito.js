@@ -147,7 +147,24 @@ async function fetchUserInfo(accessToken) {
     } catch (error) {
       console.error('사용자 정보 요청 중 오류 발생:', error);
     }
+}
+
+// 로그인 상태 업데이트 함수
+function updateNavBar(session) {
+  const loginLogoutLink = document.getElementById('login-logout-link');
+
+  if (session && session.isValid()) {
+      console.log('로그인 상태 확인됨');
+      loginLogoutLink.textContent = '로그아웃';
+      loginLogoutLink.href = '#';
+      loginLogoutLink.onclick = function () {
+          signOut();
+      };
+  } else {
+      console.log('로그아웃 상태');
+      setLoginLink();
   }
+}
 
   // 로그인 링크 설정 함수
 function setLoginLink() {
