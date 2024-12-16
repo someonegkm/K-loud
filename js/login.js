@@ -228,17 +228,18 @@ async function exchangeAuthCodeForTokens(authCode) {
     console.log('Access Token:', tokens.access_token);
     console.log('ID Token:', tokens.id_token);
 
-    // 토큰 저장
+    // 토큰을 로컬스토리지에 저장
     localStorage.setItem('accessToken', tokens.access_token);
     localStorage.setItem('idToken', tokens.id_token);
 
-    // 사용자 정보 요청 및 메인 페이지 이동
+    // 사용자 정보 요청 (선택 사항)
     await fetchUserInfo(tokens.access_token);
 
-    // 메인 페이지로 이동
-    window.location.href = 'index.html'; // 메인 화면 경로
+    // 메인 페이지로 리디렉션
+    window.location.href = 'index.html'; // 메인 페이지 URL로 이동
   } catch (error) {
     console.error('Error exchanging token:', error);
+    alert('로그인 처리 중 오류가 발생했습니다.');
   }
 }
 
@@ -260,9 +261,9 @@ async function fetchUserInfo(accessToken) {
     const userInfo = await response.json();
     console.log('사용자 정보:', userInfo);
 
-    // 사용자 정보를 UI에 반영 (예: 이름 표시)
+    // 사용자 정보를 로컬스토리지에 저장하거나 UI에 표시
+    localStorage.setItem('userInfo', JSON.stringify(userInfo));
     alert(`안녕하세요, ${userInfo.name || '사용자'}님!`);
-    window.location.href = 'index.html'; // 로그인 성공 후 리다이렉트
   } catch (error) {
     console.error('Error fetching user info:', error);
   }
