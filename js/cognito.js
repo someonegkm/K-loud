@@ -1,101 +1,119 @@
 // AWS Cognito 설정
 const poolData = {
-    UserPoolId: 'ap-northeast-2_AOgRZ1a3u', // 실제 사용자 풀 ID로 변경하세요
-    ClientId: '5o12nbraveo9g0g3l7k71njh7k', // 실제 앱 클라이언트 ID로 변경하세요
-    Domain: 'ap-northeast-2aogrz1a3u.auth.ap-northeast-2.amazoncognito.com',
-    RedirectUri: 'https://kloud-webpage.s3.ap-northeast-2.amazonaws.com/index.html',
-  };
-  
-  const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
-  
-  // Authorization Code를 가져와 토큰 교환
-  function exchangeCodeForTokens() {
+  UserPoolId: 'ap-northeast-2_AOgRZ1a3u', // 사용자 풀 ID
+  ClientId: '5o12nbraveo9g0g3l7k71njh7k', // 클라이언트 ID
+  Domain: 'ap-northeast-2aogrz1a3u.auth.ap-northeast-2.amazoncognito.com', // Cognito Hosted UI 도메인
+  RedirectUri: 'https://kloud-webpage.s3.ap-northeast-2.amazonaws.com/index.html', // Redirect URI
+};
+
+// URL에서 Authorization Code 추출
+function extractCodeFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
-    const authCode = urlParams.get('code');
+    const authCode = urlParams.get('code'); // "code" 파라미터 추출
+    console.log('Extracted Authorization Code:', authCode);
   
-    if (authCode) {
-      const tokenEndpoint = `https://${poolData.Domain}/oauth2/token`;
+    if (!authCode) {
+      console.error('Authorization Code가 없습니다. URL을 확인하세요.');
+      return null;
+    }
+    return authCode;
+  }
+
+// Cognito 설정 확인
+function validateCognitoConfiguration() {
+  if (!poolData.Domain || !poolData.ClientId || !poolData.RedirectUri) {
+    console.error('Cognito 설정이 올바르지 않습니다. 설정을 확인하세요:', poolData);
+    return false;
+  }
+  console.log('Cognito 설정 확인:', poolData);
+  return true;
+}
+
+// Authorization Code를 이용해 토큰 교환
+async function exchangeCodeForTokens(authCode) {
+    if (!validateCognitoConfiguration()) {
+      console.error('Cognito 설정 오류로 인해 토큰 교환이 중단되었습니다.');
+      return;
+    }
   
-      const bodyData = new URLSearchParams({
-        grant_type: 'authorization_code',
-        client_id: poolData.ClientId,
-        redirect_uri: poolData.RedirectUri,
-        code: authCode,
-      });
+    const tokenEndpoint = `https://${poolData.Domain}/oauth2/token`;
+    const bodyData = new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: poolData.ClientId,
+      redirect_uri: poolData.RedirectUri,
+      code: authCode,
+    });
   
-      fetch(tokenEndpoint, {
+    console.log('Token 요청 데이터:', bodyData.toString());
+  
+    try {
+      const response = await fetch(tokenEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: bodyData.toString(),
-      })
-        .then((response) => {
-          if (!response.ok) throw new Error('토큰 교환 실패');
-          return response.json();
-        })
-        .then((tokens) => {
-          console.log('Access Token:', tokens.access_token);
-          console.log('ID Token:', tokens.id_token);
+      });
   
-          // 토큰 저장
-          localStorage.setItem('accessToken', tokens.access_token);
-          localStorage.setItem('idToken', tokens.id_token);
+      console.log('Token 요청 응답 상태:', response.status);
   
-          // 페이지 상태 갱신
-          checkLoginStatus();
-        })
-        .catch((error) => console.error('Error exchanging token:', error));
-    }
-  }
-  
-  // 로그인 상태 확인 함수
-  function checkLoginStatus() {
-    const accessToken = localStorage.getItem('accessToken');
-    const idToken = localStorage.getItem('idToken');
-    const loginLogoutLink = document.getElementById('login-logout-link');
-  
-    if (accessToken && idToken) {
-      // 로그인된 상태
-      const payload = JSON.parse(atob(idToken.split('.')[1])); // ID 토큰 디코딩
-      const userId = payload['cognito:username'] || payload.email; // 사용자 이름 또는 이메일
-  
-      // 사용자 ID를 HTML 필드에 표시
-      const ownerIdField = document.getElementById('ownerId');
-      if (ownerIdField) {
-        ownerIdField.value = userId;
-        ownerIdField.setAttribute('readonly', true);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Token 교환 실패:', errorText);
+        throw new Error('Token 교환 실패');
       }
   
-      loginLogoutLink.innerHTML = '<i class="fa fa-user" aria-hidden="true"></i> 로그아웃';
-      loginLogoutLink.href = '#';
-      loginLogoutLink.onclick = function (e) {
-        e.preventDefault();
-        signOut();
-      };
-    } else {
-      setLoginLink();
+      const tokens = await response.json();
+      console.log('받은 토큰:', tokens);
+  
+      // 토큰 저장
+      localStorage.setItem('accessToken', tokens.access_token);
+      localStorage.setItem('idToken', tokens.id_token);
+  
+      // 사용자 정보 요청
+      fetchUserInfo(tokens.access_token);
+  
+      // 로그인 성공 후 메인 페이지로 리디렉트
+      window.location.href = 'index.html';
+    } catch (error) {
+      console.error('Token 교환 중 오류 발생:', error);
     }
   }
+
+// 사용자 정보 요청 함수
+async function fetchUserInfo(accessToken) {
+    const userInfoEndpoint = `https://${poolData.Domain}/oauth2/userInfo`;
   
-  // 로그인 링크 설정 함수
-  function setLoginLink() {
-    const loginLogoutLink = document.getElementById('login-logout-link');
-    loginLogoutLink.innerHTML = '<i class="fa fa-user" aria-hidden="true"></i> 로그인';
-    loginLogoutLink.href = 'login.html';
+    try {
+      const response = await fetch(userInfoEndpoint, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('사용자 정보 요청 실패');
+      }
+  
+      const userInfo = await response.json();
+      console.log('사용자 정보:', userInfo);
+  
+      // 사용자 정보를 로컬스토리지에 저장하거나 UI에 표시
+      localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      alert(`안녕하세요, ${userInfo.name || '사용자'}님!`);
+    } catch (error) {
+      console.error('사용자 정보 요청 중 오류 발생:', error);
+    }
   }
-  
-  // 로그아웃 함수
-  function signOut() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('idToken');
-    alert('로그아웃 되었습니다.');
-    window.location.href = 'index.html';
+
+// 페이지 로딩 시 실행
+document.addEventListener('DOMContentLoaded', function () {
+  console.log('DOM fully loaded and parsed');
+  const authCode = extractCodeFromURL();
+  if (authCode) {
+    exchangeCodeForTokens(authCode);
+  } else {
+    console.log('Authorization Code가 없어서 토큰 교환을 생략합니다.');
   }
-  
-  // 페이지 로딩 시 실행
-  window.onload = function () {
-    exchangeCodeForTokens(); // URL에서 code 추출 및 토큰 교환
-    checkLoginStatus();      // 로그인 상태 확인
-  };
-  
+});
