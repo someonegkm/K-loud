@@ -205,33 +205,40 @@ async function exchangeAuthCodeForTokens(authCode) {
   const tokenEndpoint = `https://${poolData.Domain}/oauth2/token`;
 
   const bodyData = new URLSearchParams({
-    grant_type: 'authorization_code',
-    client_id: poolData.ClientId,
-    redirect_uri: poolData.RedirectUri, // CloudFront의 올바른 URI
-    code: authCode,
+      grant_type: 'authorization_code',
+      client_id: poolData.ClientId,
+      redirect_uri: poolData.RedirectUri,
+      code: authCode,
   });
 
   try {
-    const response = await fetch(tokenEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: bodyData.toString(),
-    });
+      const response = await fetch(tokenEndpoint, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: bodyData.toString(),
+      });
 
-    if (!response.ok) {
-      throw new Error('Token 교환 실패');
-    }
+      if (!response.ok) {
+          throw new Error('Token 교환 실패');
+      }
 
-    const tokens = await response.json();
-    localStorage.setItem('accessToken', tokens.access_token);
-    localStorage.setItem('idToken', tokens.id_token);
+      const tokens = await response.json();
+      console.log('Access Token:', tokens.access_token);
+      console.log('ID Token:', tokens.id_token);
 
-    // 로그인 후 메인 페이지로 이동
-    window.location.href = '/index.html';
+      // 토큰을 localStorage에 저장
+      localStorage.setItem('accessToken', tokens.access_token);
+      localStorage.setItem('idToken', tokens.id_token);
+
+      // 사용자 정보 요청
+      fetchUserInfo(tokens.access_token);
+
+      // 로그인 성공 후 메인 페이지로 리디렉트
+      window.location.href = 'index.html';
   } catch (error) {
-    console.error('Error exchanging token:', error);
+      console.error('Error exchanging token:', error);
   }
 }
 
