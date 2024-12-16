@@ -14,6 +14,7 @@ function checkLoginStatus() {
   const loginLogoutLink = document.getElementById('login-logout-link');
   const idToken = localStorage.getItem('idToken');
   const accessToken = localStorage.getItem('accessToken');
+  const refreshToken = localStorage.getItem('refreshToken'); // RefreshToken 추가
 
   if (cognitoUser) {
       // 사용자 세션 확인
@@ -23,14 +24,19 @@ function checkLoginStatus() {
               setLoginLink();
               return;
           }
-          updateNavBar(session); // 로그인 상태 업데이트
+          // 세션이 유효하면 네비게이션 업데이트
+          updateNavBar(session);
       });
   } else if (idToken && accessToken) {
       console.log('로컬 스토리지에서 토큰을 가져와 세션을 복원합니다.');
 
+      // ID 토큰에서 고유 사용자 이름 추출
+      const payload = JSON.parse(atob(idToken.split('.')[1]));
+      const username = payload['username'] || 'unknown';
+
       // 세션 수동 복원
       cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-          Username: 'google', // 임시 사용자 이름 (확인된 사용자로 업데이트 가능)
+          Username: username, // ID 토큰에서 추출한 사용자 이름 사용
           Pool: userPool,
       });
 
@@ -38,7 +44,7 @@ function checkLoginStatus() {
           new AmazonCognitoIdentity.CognitoUserSession({
               IdToken: new AmazonCognitoIdentity.CognitoIdToken({ IdToken: idToken }),
               AccessToken: new AmazonCognitoIdentity.CognitoAccessToken({ AccessToken: accessToken }),
-              RefreshToken: new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: '' }),
+              RefreshToken: new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: refreshToken || '' }),
           })
       );
 
