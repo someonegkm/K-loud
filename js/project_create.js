@@ -34,74 +34,131 @@ document.querySelectorAll('.role-button').forEach((button) => {
     });
 });
 
+// 페이지 로드 시 사용자 ID 자동 설정
+function setOwnerIdField() {
+    const cognitoUser = userPool.getCurrentUser(); // 현재 사용자 가져오기
+
+    if (!cognitoUser) {
+        console.error('사용자가 로그인하지 않았습니다.');
+        alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // 사용자 세션 확인
+    cognitoUser.getSession((err, session) => {
+        if (err || !session.isValid()) {
+            console.error('세션이 유효하지 않습니다:', err);
+            alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // `username`을 가져와 `ownerId` 필드에 설정
+        userId = cognitoUser.getUsername();
+        console.log('현재 사용자 ID:', userId);
+
+        const ownerIdField = document.getElementById('ownerId');
+        if (ownerIdField) {
+            ownerIdField.value = userId;
+        }
+    });
+}
+
 // 방 저장하기 버튼 클릭 이벤트
 document.getElementById('saveProjectButton').addEventListener('click', async function () {
     // 입력된 값 가져오기
-    const projectName = document.getElementById('projectName').value;
-    const projectDescription = document.getElementById('projectDescription').value;
-    const ownerId = document.getElementById('ownerId').value;
-    const techStack = document.getElementById('techStack').value;
-    const projectType = document.getElementById('projectType').value;
-    const maxTeamSize = parseInt(document.getElementById('maxTeamSize').value, 10); // 모집 인원
-    const projectDuration = parseInt(document.getElementById('projectDuration').value, 10); // 소요 기간
-
-    // 선택된 필요한 역할 가져오기
+    const projectName = document.getElementById('projectName').value.trim();
+    const projectDescription = document.getElementById('projectDescription').value.trim();
+    const ownerId = document.getElementById('ownerId').value.trim(); // 자동으로 채워진 값 사용
+    const techStack = document.getElementById('techStack').value.trim();
+    const projectType = document.getElementById('projectType').value.trim();
+    const maxTeamSize = parseInt(document.getElementById('maxTeamSize').value, 10);
+    const projectDuration = parseInt(document.getElementById('projectDuration').value, 10);
     const roles = getSelectedRoles();
 
-    // 역할과 모집 인원 검증
+    const fields = { projectName, projectDescription, techStack, projectType, maxTeamSize, projectDuration };
+    if (!validateFields(fields)) return;
+
     if (roles.length !== maxTeamSize) {
         alert(`모집 인원(${maxTeamSize})과 선택된 역할(${roles.length})의 수가 같아야 합니다.`);
-        return; // 프로젝트 생성 중단
+        return;
     }
 
-    // 생성 일시와 고유 ID 추가
     const now = new Date();
-    const formattedDate = formatDate(now);
-    const projectId = generateUUID();
-
-    // JSON 데이터 생성
     const projectData = {
-        projectId: projectId,
-        projectName: projectName,
-        projectDescription: projectDescription,
-        ownerId: ownerId,
+        projectId: generateUUID(),
+        projectName,
+        projectDescription,
+        ownerId, // 자동 설정된 ownerId 사용
         techStack: techStack.split(',').map(s => s.trim()),
-        projectType: projectType,
-        maxTeamSize: maxTeamSize,
-        projectDuration: projectDuration,
-        roles: roles,
-        createdAt: formattedDate,
+        projectType,
+        maxTeamSize,
+        projectDuration,
+        roles,
+        createdAt: formatDate(now),
     };
 
     console.log('프로젝트 데이터:', JSON.stringify(projectData, null, 2));
 
     try {
-        // API Gateway로 POST 요청
-        const response = await fetch('https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/createproject', { // API Gateway URL
+        const response = await fetch('https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/createproject', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 인증 토큰 추가
             },
             body: JSON.stringify(projectData),
         });
 
         if (response.ok) {
-            const responseData = await response.json();
-            console.log('API Gateway 응답:', responseData);
-
-            // 성공 팝업 메시지
             alert('프로젝트 생성이 완료되었습니다!');
-
-            // index.html로 이동
             setTimeout(() => {
                 window.location.href = 'index.html';
-            }, 1000); // 1초 후에 이동
+            }, 1000);
         } else {
-            console.error('API Gateway 응답 에러:', response.statusText);
-            alert('프로젝트 생성 중 문제가 발생했습니다.');
+            throw new Error('프로젝트 생성 실패');
         }
     } catch (error) {
-        console.error('API Gateway 요청 실패:', error);
-        alert('서버와 통신 중 오류가 발생했습니다.');
+        console.error('API 요청 실패:', error);
+        alert('프로젝트 생성 중 문제가 발생했습니다.');
     }
 });
+
+// 필드 검증 함수
+function validateFields(fields) {
+    const { projectName, projectDescription, techStack, projectType, maxTeamSize, projectDuration } = fields;
+
+    if (!projectName) {
+        alert('프로젝트 이름을 입력하세요.');
+        return false;
+    }
+
+    if (!projectDescription) {
+        alert('프로젝트 설명을 입력하세요.');
+        return false;
+    }
+
+    if (!techStack) {
+        alert('기술 스택을 입력하세요.');
+        return false;
+    }
+
+    if (!projectType) {
+        alert('프로젝트 유형을 선택하세요.');
+        return false;
+    }
+
+    if (!maxTeamSize || isNaN(maxTeamSize) || maxTeamSize <= 0) {
+        alert('유효한 모집 인원을 입력하세요.');
+        return false;
+    }
+
+    if (!projectDuration || isNaN(projectDuration) || projectDuration <= 0) {
+        alert('유효한 프로젝트 소요 기간을 입력하세요.');
+        return false;
+    }
+
+    return true; // 모든 필드가 유효하면 true 반환
+}
+
