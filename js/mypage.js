@@ -16,9 +16,21 @@ function populateUserProfile() {
             window.location.href = 'login.html';
             return;
         }
-
-        console.log('세션이 성공적으로 가져와졌습니다.');
+    
         const idToken = session.getIdToken().getJwtToken();
+        const accessToken = session.getAccessToken().getJwtToken();
+    
+        console.log('Access Token:', accessToken);
+        console.log('ID Token:', idToken);
+    
+        // Access Token 디코딩
+        const accessTokenPayload = JSON.parse(atob(accessToken.split('.')[1]));
+        console.log('Access Token Payload:', accessTokenPayload);
+    
+        if (!accessTokenPayload.scope || !accessTokenPayload.scope.includes('email')) {
+            console.error('Access Token에 필요한 스코프가 없습니다.');
+        }
+    
         localStorage.setItem('idToken', idToken);
 
         // 사용자 ID 가져오기 (로그인 아이디)
