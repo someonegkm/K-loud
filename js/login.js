@@ -3,7 +3,7 @@ const poolData = {
   UserPoolId: 'ap-northeast-2_AOgRZ1a3u',
   ClientId: '5o12nbraveo9g0g3l7k71njh7k',
   Domain: 'ap-northeast-2aogrz1a3u.auth.ap-northeast-2.amazoncognito.com',
-  RedirectUri: 'https://d84l1y8p4kdic.cloudfront.net/auth/callback', // CloudFront의 Redirect URI
+  RedirectUri: 'https://d84l1y8p4kdic.cloudfront.net', // CloudFront의 Redirect URI
 };
 
 const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
