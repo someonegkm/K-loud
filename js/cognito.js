@@ -10,42 +10,42 @@ const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
 // 로그인 상태 확인 함수
 function checkLoginStatus() {
-  const cognitoUser = userPool.getCurrentUser();
+  let cognitoUser = userPool.getCurrentUser();
   const loginLogoutLink = document.getElementById('login-logout-link');
+  const idToken = localStorage.getItem('idToken');
+  const accessToken = localStorage.getItem('accessToken');
 
-  if (cognitoUser != null) {
-      cognitoUser.getSession(function (err, session) {
-          if (err) {
-              console.log(err);
+  if (cognitoUser) {
+      // 사용자 세션 확인
+      cognitoUser.getSession((err, session) => {
+          if (err || !session.isValid()) {
+              console.error('세션이 유효하지 않습니다.', err);
               setLoginLink();
               return;
           }
-          if (session.isValid()) {
-              // 로그인된 상태
-              const idToken = session.getIdToken().getJwtToken();
-              const payload = JSON.parse(atob(idToken.split('.')[1])); // ID 토큰의 페이로드 디코딩
-              const userId = payload['cognito:username']; // Cognito에서 제공하는 사용자 이름
-
-              // 사용자 ID를 HTML 필드에 표시하고 수정 불가 설정
-              const ownerIdField = document.getElementById('ownerId');
-              if (ownerIdField) {
-                  ownerIdField.value = userId; // 사용자 ID 설정
-                  ownerIdField.setAttribute('readonly', true); // 수정 불가
-              }
-
-              loginLogoutLink.innerHTML = '<i class="fa fa-user" aria-hidden="true"></i> 로그아웃';
-              loginLogoutLink.href = '#';
-              loginLogoutLink.onclick = function (e) {
-                  e.preventDefault();
-                  signOut();
-              };
-          } else {
-              // 세션이 유효하지 않음
-              setLoginLink();
-          }
+          updateNavBar(session); // 로그인 상태 업데이트
       });
+  } else if (idToken && accessToken) {
+      console.log('로컬 스토리지에서 토큰을 가져와 세션을 복원합니다.');
+
+      // 세션 수동 복원
+      cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+          Username: 'google', // 임시 사용자 이름 (확인된 사용자로 업데이트 가능)
+          Pool: userPool,
+      });
+
+      cognitoUser.setSignInUserSession(
+          new AmazonCognitoIdentity.CognitoUserSession({
+              IdToken: new AmazonCognitoIdentity.CognitoIdToken({ IdToken: idToken }),
+              AccessToken: new AmazonCognitoIdentity.CognitoAccessToken({ AccessToken: accessToken }),
+              RefreshToken: new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: '' }),
+          })
+      );
+
+      console.log('세션이 수동으로 복원되었습니다.');
+      updateNavBar({ isValid: () => true }); // 네비게이션 상태 업데이트
   } else {
-      // 로그인되지 않은 상태
+      console.log('로그인되지 않은 상태입니다.');
       setLoginLink();
   }
 }
