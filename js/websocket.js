@@ -44,8 +44,15 @@ function connectWebSocket(userPool) {
     const cognitoUser = userPool.getCurrentUser();
 
     if (!cognitoUser) {
-        console.error('사용자가 로그인하지 않았습니다.');
-        return;
+        console.log('사용자가 로그인하지 않았습니다.');
+        // 토큰이 로컬 스토리지에 있는 경우 수동으로 세션을 복원
+        const idToken = localStorage.getItem('idToken');
+        if (idToken) {
+            console.log('로컬 스토리지에서 토큰을 가져와 세션을 복원합니다.');
+            // 필요한 작업 추가
+        } else {
+            console.log('사용자가 로그인되지 않았습니다.');
+        }
     }
 
     // Cognito 사용자 ID 가져오기
