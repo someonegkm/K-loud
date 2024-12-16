@@ -55,24 +55,30 @@ function connectWebSocket(userPool) {
             return;
         }
 
-        // 세션을 수동으로 복구하는 경우
         console.log('로컬 스토리지에서 토큰을 가져와 세션을 복원합니다.');
+
+        // ID 토큰 디코딩하여 sub 또는 username 추출
+        const decodedToken = JSON.parse(atob(idToken.split('.')[1])); // JWT 디코딩
+        const userIdFromToken = decodedToken['cognito:username'] || decodedToken['sub'];
+
+        console.log('토큰에서 가져온 사용자 ID:', userIdFromToken);
+
         cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-            Username: 'unknown', // 실제 Cognito 사용자의 username이 필요합니다.
+            Username: userIdFromToken, // 디코딩된 사용자 ID 사용
             Pool: userPool,
         });
 
-        // 복구된 사용자로 세션 생성
+        // 세션 설정
         cognitoUser.setSignInUserSession(
             new AmazonCognitoIdentity.CognitoUserSession({
                 IdToken: new AmazonCognitoIdentity.CognitoIdToken({ IdToken: idToken }),
                 AccessToken: new AmazonCognitoIdentity.CognitoAccessToken({ AccessToken: accessToken }),
-                RefreshToken: new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: '' }), // RefreshToken 필요 시 추가
+                RefreshToken: new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: '' }),
             })
         );
     }
 
-    // 세션이 있는 경우 WebSocket 연결 시도
+    // 세션 확인 및 WebSocket 연결
     cognitoUser.getSession((err, session) => {
         if (err) {
             console.error('세션을 가져오는 중 오류 발생:', err);
@@ -80,9 +86,14 @@ function connectWebSocket(userPool) {
         }
 
         if (session.isValid()) {
-            const userId = cognitoUser.getUsername();
+            // 사용자 ID 추출 (ID 토큰에서 가져옴)
+            const idToken = session.getIdToken().getJwtToken();
+            const decodedToken = JSON.parse(atob(idToken.split('.')[1]));
+            const userId = decodedToken['cognito:username'] || decodedToken['sub'];
+
             console.log('WebSocket 연결을 위한 사용자 ID:', userId);
 
+            // WebSocket 연결
             const wsUrl = `wss://fds9jyxgw7.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
             const ws = new WebSocket(wsUrl);
 
@@ -115,6 +126,7 @@ function connectWebSocket(userPool) {
         }
     });
 }
+
 
 // 알림 컨테이너 추가 (HTML에 없을 경우 추가)
 document.addEventListener('DOMContentLoaded', () => {
