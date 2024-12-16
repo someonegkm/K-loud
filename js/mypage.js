@@ -18,29 +18,13 @@ function populateUserProfile() {
         }
 
         console.log('세션이 성공적으로 가져와졌습니다.');
-        const accessToken = session.getAccessToken().getJwtToken();
         const idToken = session.getIdToken().getJwtToken();
-        const payload = JSON.parse(atob(accessToken.split('.')[1])); // Access Token의 페이로드 디코딩
-
-        console.log('Access Token Payload:', payload);
-
-        // 필요한 스코프가 있는지 확인
-        const scopes = payload['scope'];
-        if (!scopes || !scopes.includes('email') || !scopes.includes('profile')) {
-            console.error('필수 스코프가 누락되었습니다.');
-            alert('접근 권한이 없습니다. 다시 로그인해주세요.');
-            window.location.href = 'login.html';
-            return;
-        }
-
         localStorage.setItem('idToken', idToken);
-        localStorage.setItem('accessToken', accessToken);
 
         // 사용자 ID 가져오기 (로그인 아이디)
         userId = cognitoUser.getUsername();
         console.log('로그인 아이디 (username):', userId);
 
-        // 사용자 속성 가져오기
         cognitoUser.getUserAttributes((err, attributes) => {
             if (err) {
                 console.error('사용자 속성 가져오기 오류:', err);
@@ -56,13 +40,12 @@ function populateUserProfile() {
             });
 
             // 데이터 가져오기
-            fetchUserProfile();
-            fetchUserProjects();
-            fetchMyProjects(userId);
+            fetchUserProfile(); // 사용자 프로필 데이터 가져오기
+            fetchUserProjects(); // 사용자가 생성한 프로젝트 데이터 가져오기
+            fetchMyProjects(userId); // userId를 기반으로 참여한 프로젝트 데이터 가져오기
         });
     });
 }
-
 
 
 // 사용자 프로필 데이터 가져오기
