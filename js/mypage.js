@@ -16,48 +16,29 @@ function populateUserProfile() {
             window.location.href = 'login.html';
             return;
         }
-    
-        const idToken = session.getIdToken().getJwtToken();
-        const accessToken = session.getAccessToken().getJwtToken();
-    
-        console.log('Access Token:', accessToken);
-        console.log('ID Token:', idToken);
-    
-        // Access Token 디코딩
-        const accessTokenPayload = JSON.parse(atob(accessToken.split('.')[1]));
-        console.log('Access Token Payload:', accessTokenPayload);
-    
-        if (!accessTokenPayload.scope || !accessTokenPayload.scope.includes('email')) {
-            console.error('Access Token에 필요한 스코프가 없습니다.');
-        }
-    
-        localStorage.setItem('idToken', idToken);
 
-        // 사용자 ID 가져오기 (로그인 아이디)
+        console.log('세션이 성공적으로 가져와졌습니다.');
+        const idToken = session.getIdToken().getJwtToken();
+        console.log('ID Token:', idToken);
+
+        // 사용자 ID 가져오기 (username)
         userId = cognitoUser.getUsername();
         console.log('로그인 아이디 (username):', userId);
 
-        cognitoUser.getUserAttributes((err, attributes) => {
-            if (err) {
-                console.error('사용자 속성 가져오기 오류:', err);
-                return;
-            }
+        // 사용자 속성 대신 ID Token을 디코딩하여 사용자 정보 가져오기
+        const payload = JSON.parse(atob(idToken.split('.')[1]));
+        console.log('ID Token Payload:', payload);
 
-            attributes.forEach(attribute => {
-                console.log(`속성 이름: ${attribute.Name}, 속성 값: ${attribute.Value}`);
-                if (attribute.Name === 'sub') {
-                    userSub = attribute.Value; // sub 값 저장
-                    console.log('사용자 sub:', userSub);
-                }
-            });
+        // 필요한 사용자 정보 설정
+        document.getElementById('user-name').value = payload.name || '이름 없음';
+        document.getElementById('user-email').value = payload.email || '이메일 없음';
 
-            // 데이터 가져오기
-            fetchUserProfile(); // 사용자 프로필 데이터 가져오기
-            fetchUserProjects(); // 사용자가 생성한 프로젝트 데이터 가져오기
-            fetchMyProjects(userId); // userId를 기반으로 참여한 프로젝트 데이터 가져오기
-        });
+        fetchUserProfile();
+        fetchUserProjects();
+        fetchMyProjects(userId);
     });
 }
+
 
 
 // 사용자 프로필 데이터 가져오기
