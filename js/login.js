@@ -207,7 +207,7 @@ async function exchangeAuthCodeForTokens(authCode) {
   const bodyData = new URLSearchParams({
     grant_type: 'authorization_code',
     client_id: poolData.ClientId,
-    redirect_uri: poolData.RedirectUri,
+    redirect_uri: poolData.RedirectUri, // CloudFront의 올바른 URI
     code: authCode,
   });
 
@@ -225,21 +225,13 @@ async function exchangeAuthCodeForTokens(authCode) {
     }
 
     const tokens = await response.json();
-    console.log('Access Token:', tokens.access_token);
-    console.log('ID Token:', tokens.id_token);
-
-    // 토큰을 로컬스토리지에 저장
     localStorage.setItem('accessToken', tokens.access_token);
     localStorage.setItem('idToken', tokens.id_token);
 
-    // 사용자 정보 요청 (선택 사항)
-    await fetchUserInfo(tokens.access_token);
-
-    // 메인 페이지로 리디렉션
-    window.location.href = 'index.html'; // 메인 페이지 URL로 이동
+    // 로그인 후 메인 페이지로 이동
+    window.location.href = '/index.html';
   } catch (error) {
     console.error('Error exchanging token:', error);
-    alert('로그인 처리 중 오류가 발생했습니다.');
   }
 }
 
