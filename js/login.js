@@ -2,6 +2,8 @@
 const poolData = {
   UserPoolId: 'ap-northeast-2_AOgRZ1a3u',
   ClientId: '5o12nbraveo9g0g3l7k71njh7k',
+  Domain: 'ap-northeast-2aogrz1a3u.auth.ap-northeast-2.amazoncognito.com', // Cognito Hosted UI 도메인 (예: myapp.auth.ap-northeast-2.amazoncognito.com)
+  RedirectUri: 'https://d8411y8p4kdic.cloudfront.net/auth/callback', // 구글 로그인 후 리디렉션될 URI
 };
 
 const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
@@ -180,3 +182,84 @@ function handleSignIn() {
     },
   });
 }
+
+// 구글 로그인 버튼 이벤트 핸들러
+document.querySelector('.social-icon.google').addEventListener('click', () => {
+  const googleSignInUrl = `https://${poolData.Domain}/oauth2/authorize?` +
+    `client_id=${poolData.ClientId}&response_type=code&scope=email+openid+profile&` +
+    `redirect_uri=${encodeURIComponent(poolData.RedirectUri)}&identity_provider=Google`;
+
+  window.location.href = googleSignInUrl;
+});
+
+// Redirect URI에서 Authorization Code 추출
+const urlParams = new URLSearchParams(window.location.search);
+const authCode = urlParams.get('code');
+
+if (authCode) {
+  exchangeAuthCodeForTokens(authCode);
+}
+
+async function exchangeAuthCodeForTokens(authCode) {
+  const tokenEndpoint = `https://${poolData.Domain}/oauth2/token`;
+
+  const bodyData = new URLSearchParams({
+    grant_type: 'authorization_code',
+    client_id: poolData.ClientId,
+    redirect_uri: poolData.RedirectUri,
+    code: authCode,
+  });
+
+  try {
+    const response = await fetch(tokenEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: bodyData.toString(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Token 교환 실패');
+    }
+
+    const tokens = await response.json();
+    console.log('Access Token:', tokens.access_token);
+    console.log('ID Token:', tokens.id_token);
+
+    // 토큰 저장 (예: localStorage)
+    localStorage.setItem('accessToken', tokens.access_token);
+    localStorage.setItem('idToken', tokens.id_token);
+
+    // 사용자 정보 요청 (선택)
+    fetchUserInfo(tokens.access_token);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+async function fetchUserInfo(accessToken) {
+  const userInfoEndpoint = `https://${poolData.Domain}/oauth2/userInfo`;
+
+  try {
+    const response = await fetch(userInfoEndpoint, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('사용자 정보 요청 실패');
+    }
+
+    const userInfo = await response.json();
+    console.log('사용자 정보:', userInfo);
+
+    // 사용자 정보를 UI에 반영
+    document.getElementById('user-info').innerText = `안녕하세요, ${userInfo.name}`;
+  } catch (error) {
+    console.error('Error fetching user info:', error);
+  }
+}
+
