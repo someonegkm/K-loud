@@ -101,6 +101,19 @@ document.getElementById('signup-button').addEventListener('click', function (e) 
   });
 });
 
+function togglePassword(inputId, toggleElement) {
+  const inputField = document.getElementById(inputId);
+  const icon = toggleElement.querySelector('i'); // 내부 아이콘 선택
+
+  if (inputField.type === 'password') {
+    inputField.type = 'text'; // 비밀번호 보이기
+    icon.classList.replace('bx-show', 'bx-hide'); // 눈 감기 아이콘으로 변경
+  } else {
+    inputField.type = 'password'; // 비밀번호 숨기기
+    icon.classList.replace('bx-hide', 'bx-show'); // 눈 뜨기 아이콘으로 변경
+  }
+}
+
 // 확인 코드 제출 처리 로직 추가
 document.getElementById('verify-button').addEventListener('click', function (e) {
   e.preventDefault();

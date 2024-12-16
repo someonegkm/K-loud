@@ -1197,4 +1197,36 @@ a:focus {
 .alert-item:hover {
   background: #f0f8f5;
 }
+
+/* 부모 컨테이너 설정 */
+.input-group {
+  position: relative;
+}
+
+/* 비밀번호 입력 필드 */
+.input-group input {
+  width: 100%;
+  padding-right: 50px; /* 버튼이 들어갈 공간 확보 */
+  box-sizing: border-box;
+}
+
+/* 비밀번호 보이기/숨기기 버튼 스타일 */
+.toggle-password {
+  position: absolute;
+  right: 10px; /* 오른쪽 끝에서 10px 띄움 */
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1.2em;
+  color: #888; /* 아이콘 색상 */
+}
+
+.toggle-password:hover {
+  color: #333;
+}
+
+
+
 /* End of style.css */

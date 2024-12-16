@@ -36,12 +36,17 @@
               <input type="email" id="signup-email" placeholder="Email">
             </div>
             <div class="input-group">
-              <i class='bx bxs-lock-alt'></i>
               <input type="password" id="signup-password" placeholder="비밀번호">
+              <span class="password-toggle" onclick="togglePassword('signup-password', this)">
+                <i class='bx bx-show'></i>
+              </span>
             </div>
+            
             <div class="input-group">
-              <i class='bx bxs-lock-alt'></i>
               <input type="password" id="signup-confirm-password" placeholder="비밀번호 확인">
+              <span class="password-toggle" onclick="togglePassword('signup-confirm-password', this)">
+                <i class='bx bx-show'></i>
+              </span>
             </div>
 
             <!-- 오류 메시지 표시 -->
