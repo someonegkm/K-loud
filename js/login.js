@@ -267,3 +267,8 @@ async function fetchUserInfo(accessToken) {
     console.error('Error fetching user info:', error);
   }
 }
+
+// 메인 페이지로 이동하는 함수
+function goToMain() {
+  window.location.href = 'index.html';
+}

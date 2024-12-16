@@ -176,10 +176,6 @@ function attachAcceptEvent(alertData) {
     };
 }
 
-
-
-
-
 // 거절 버튼 클릭 이벤트
 function attachRejectEvent(alertData) { // 'alert' 대신 'alertData'로 변경
   const rejectButton = document.getElementById('reject-button');
