@@ -73,8 +73,6 @@ async function exchangeCodeForTokens(authCode) {
       // 사용자 정보 요청
       fetchUserInfo(tokens.access_token);
   
-      // 로그인 성공 후 메인 페이지로 리디렉트
-      window.location.href = 'index.html';
     } catch (error) {
       console.error('Token 교환 중 오류 발생:', error);
     }
