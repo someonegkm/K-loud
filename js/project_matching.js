@@ -1,7 +1,7 @@
 // project_matching.js
 
 // Lambda API Gateway Endpoint (API Gateway에서 배포한 Invoke URL + /user-matching)
-const LAMBDA_API_URL = 'https://1e2ekx8bu3.execute-api.ap-northeast-2.amazonaws.com/prod/user-matching';
+const LAMBDA_API_URL = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/prod/user-matching';
 
 // Cognito UserPool 객체가 선언되어 있다고 가정 (cognito.js에서 전역 userPool 객체 사용)
 function getLoggedInUserId() {
@@ -32,19 +32,18 @@ function updateNavBar() {
 async function fetchMatchingProjects(userId) {
   try {
     console.log('Calling Lambda with userId:', userId);
-    const idToken = localStorage.getItem('idToken'); // 로그인 시 cognito.js에서 idToken 저장했다고 가정
+    const idToken = localStorage.getItem('idToken');
     if (!idToken) {
-      console.warn('No idToken found in localStorage. Make sure user is logged in.');
+      console.warn('No idToken found in localStorage.');
     }
 
-    // Lambda 호출
     const response = await fetch(LAMBDA_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}` // Cognito 인증 토큰
+        'Authorization': `Bearer ${idToken}`
       },
-      body: JSON.stringify({ userId: userId })
+      body: JSON.stringify({ userId })
     });
 
     console.log('API Response Status:', response.status);
@@ -56,16 +55,15 @@ async function fetchMatchingProjects(userId) {
     }
 
     const projects = await response.json();
-    console.log("Filtered Projects (parsed):", projects);
-    // projects가 이미 일반 JSON 형태라고 가정.
-    // 예: [{projectId: "xyz", projectName: "Test Project", projectType: "web", techStack: ["React","Node.js"], projectDescription: "Desc..."}]
+    console.log('Filtered Projects:', projects);
 
     renderMatchingProjects(projects);
   } catch (error) {
-    console.error('Error fetching projects:', error);
-    alert('프로젝트 매칭 결과를 가져오는 중 문제가 발생했습니다.');
+    console.error('Error fetching projects:', error.message);
+    alert(`Error fetching projects: ${error.message}`);
   }
 }
+
 
 // 프로젝트 목록 렌더링 함수
 function renderMatchingProjects(projects) {
