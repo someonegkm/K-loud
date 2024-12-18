@@ -102,7 +102,7 @@ document.getElementById('saveProjectButton').addEventListener('click', async fun
     console.log('프로젝트 데이터:', JSON.stringify(projectData, null, 2));
 
     try {
-        const response = await fetch('https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/createproject', {
+        const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/createproject', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -91,7 +91,7 @@ async function fetchUserProfile() {
 // 사용자 프로젝트 데이터 가져오기
 async function fetchUserProjects() {
     try {
-        const response = await fetch(`https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/createproject?ownerId=${userId}`, {
+        const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/createproject?ownerId=${userId}`, {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
@@ -209,7 +209,7 @@ document.getElementById('saveEditButton').addEventListener('click', async functi
 
     try {
         // API Gateway로 PUT 요청
-        const response = await fetch('https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/updateProject', { // 수정된 API URL
+        const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/updateProject', { // 수정된 API URL
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -241,7 +241,7 @@ async function deleteProject(projectId) {
     }
 
     try {
-        const response = await fetch(`https://df6x7d34ol.execute-api.ap-northeast-2.amazonaws.com/prod/createproject/${projectId}`, {
+        const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/createproject/${projectId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
