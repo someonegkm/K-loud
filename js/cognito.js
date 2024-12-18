@@ -19,11 +19,37 @@ function checkLoginStatus() {
   if (cognitoUser) {
       cognitoUser.getSession((err, session) => {
           if (err || !session.isValid()) {
-              console.error('세션이 유효하지 않습니다.', err);
-              setLoginLink();
+              console.warn('세션이 유효하지 않습니다. 새 세션을 요청합니다.', err);
+
+              // refreshToken을 이용해 세션 갱신
+              if (refreshToken) {
+                  cognitoUser.refreshSession(new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: refreshToken }), (refreshErr, newSession) => {
+                      if (refreshErr) {
+                          console.error('새 세션 요청 중 오류 발생:', refreshErr);
+                          setLoginLink();
+                          return;
+                      }
+                      console.log('새로운 세션이 성공적으로 갱신되었습니다:', newSession);
+
+                      // 로컬스토리지에 새로운 토큰 저장
+                      localStorage.setItem('idToken', newSession.getIdToken().getJwtToken());
+                      localStorage.setItem('accessToken', newSession.getAccessToken().getJwtToken());
+                      localStorage.setItem('refreshToken', newSession.getRefreshToken().getToken());
+
+                      const idTokenPayload = newSession.getIdToken().decodePayload();
+                      const username = idTokenPayload.username || idTokenPayload['cognito:username'] || 'unknown';
+                      localStorage.setItem('username', username);
+
+                      updateNavBar(username); // 네비게이션 상태 업데이트
+                  });
+              } else {
+                  console.warn('Refresh Token이 없습니다. 로그인이 필요합니다.');
+                  setLoginLink();
+              }
               return;
           }
 
+          // 세션이 유효한 경우
           const idTokenPayload = session.getIdToken().decodePayload(); // ID 토큰에서 페이로드 디코딩
           const username = idTokenPayload.username || idTokenPayload['cognito:username'] || 'unknown';
 
@@ -59,6 +85,7 @@ function checkLoginStatus() {
       setLoginLink();
   }
 }
+
 
 // URL에서 Authorization Code 추출
 function extractCodeFromURL() {

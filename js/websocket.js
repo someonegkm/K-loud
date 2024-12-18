@@ -49,22 +49,23 @@ function connectWebSocket(userPool) {
         console.warn('사용자가 로그인하지 않았습니다.');
         const idToken = localStorage.getItem('idToken');
         const accessToken = localStorage.getItem('accessToken');
+        const refreshToken = localStorage.getItem('refreshToken');
 
-        if (!idToken || !accessToken) {
+        if (!idToken || !accessToken || !refreshToken) {
             console.error('토큰이 없습니다. 로그인이 필요합니다.');
             return;
         }
 
         console.log('로컬 스토리지에서 토큰을 가져와 세션을 복원합니다.');
 
-        // ID 토큰 디코딩하여 sub 또는 username 추출
+        // ID 토큰 디코딩하여 사용자 ID 추출
         const decodedToken = JSON.parse(atob(idToken.split('.')[1])); // JWT 디코딩
         const userIdFromToken = decodedToken['cognito:username'] || decodedToken['sub'];
 
         console.log('토큰에서 가져온 사용자 ID:', userIdFromToken);
 
         cognitoUser = new AmazonCognitoIdentity.CognitoUser({
-            Username: userIdFromToken, // 디코딩된 사용자 ID 사용
+            Username: userIdFromToken,
             Pool: userPool,
         });
 
@@ -73,7 +74,7 @@ function connectWebSocket(userPool) {
             new AmazonCognitoIdentity.CognitoUserSession({
                 IdToken: new AmazonCognitoIdentity.CognitoIdToken({ IdToken: idToken }),
                 AccessToken: new AmazonCognitoIdentity.CognitoAccessToken({ AccessToken: accessToken }),
-                RefreshToken: new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: '' }),
+                RefreshToken: new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: refreshToken }),
             })
         );
     }
@@ -86,46 +87,73 @@ function connectWebSocket(userPool) {
         }
 
         if (session.isValid()) {
-            // 사용자 ID 추출 (ID 토큰에서 가져옴)
-            const idToken = session.getIdToken().getJwtToken();
-            const decodedToken = JSON.parse(atob(idToken.split('.')[1]));
-            const userId = decodedToken['cognito:username'] || decodedToken['sub'];
-
-            console.log('WebSocket 연결을 위한 사용자 ID:', userId);
-
-            // WebSocket 연결
-            const wsUrl = `wss://fds9jyxgw7.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
-            const ws = new WebSocket(wsUrl);
-
-            ws.onopen = () => {
-                console.log('WebSocket 연결 성공');
-            };
-
-            ws.onmessage = (event) => {
-                console.log('서버로부터 받은 메시지:', event.data);
-                const message = JSON.parse(event.data);
-
-                if (message.type === 'applicationNotification') {
-                    showNotification(`
-                        지원자: ${message.applicantId}<br>
-                        프로젝트: ${message.projectName}<br>
-                        역할: ${message.role}<br>
-                    `);
-                }
-            };
-
-            ws.onclose = (event) => {
-                console.log('WebSocket 연결이 종료되었습니다. 코드:', event.code, '이유:', event.reason);
-            };
-
-            ws.onerror = (event) => {
-                console.error('WebSocket 에러 발생:', event);
-            };
+            // 유효한 세션으로 WebSocket 연결
+            initiateWebSocketConnection(session);
         } else {
-            console.error('세션이 유효하지 않습니다.');
+            console.warn('세션이 유효하지 않습니다. 새 세션을 요청합니다.');
+
+            const refreshToken = session.getRefreshToken() || localStorage.getItem('refreshToken');
+            if (refreshToken) {
+                cognitoUser.refreshSession(refreshToken, (refreshErr, newSession) => {
+                    if (refreshErr) {
+                        console.error('새 세션 요청 중 오류 발생:', refreshErr);
+                        return;
+                    }
+                    console.log('새로운 세션이 성공적으로 갱신되었습니다:', newSession);
+
+                    // 로컬스토리지에 새로운 토큰 저장
+                    localStorage.setItem('idToken', newSession.getIdToken().getJwtToken());
+                    localStorage.setItem('accessToken', newSession.getAccessToken().getJwtToken());
+                    localStorage.setItem('refreshToken', newSession.getRefreshToken().getToken());
+
+                    // 갱신된 세션으로 WebSocket 연결
+                    initiateWebSocketConnection(newSession);
+                });
+            } else {
+                console.warn('Refresh Token이 없습니다. WebSocket 연결을 중단합니다.');
+            }
         }
     });
+
+    // WebSocket 연결 로직
+    function initiateWebSocketConnection(session) {
+        const idToken = session.getIdToken().getJwtToken();
+        const decodedToken = JSON.parse(atob(idToken.split('.')[1]));
+        const userId = decodedToken['cognito:username'] || decodedToken['sub'];
+
+        console.log('WebSocket 연결을 위한 사용자 ID:', userId);
+
+        // WebSocket 연결
+        const wsUrl = `wss://fds9jyxgw7.execute-api.ap-northeast-2.amazonaws.com/prod/?userId=${userId}`;
+        const ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+            console.log('WebSocket 연결 성공');
+        };
+
+        ws.onmessage = (event) => {
+            console.log('서버로부터 받은 메시지:', event.data);
+            const message = JSON.parse(event.data);
+
+            if (message.type === 'applicationNotification') {
+                showNotification(`
+                    지원자: ${message.applicantId}<br>
+                    프로젝트: ${message.projectName}<br>
+                    역할: ${message.role}<br>
+                `);
+            }
+        };
+
+        ws.onclose = (event) => {
+            console.log('WebSocket 연결이 종료되었습니다. 코드:', event.code, '이유:', event.reason);
+        };
+
+        ws.onerror = (event) => {
+            console.error('WebSocket 에러 발생:', event);
+        };
+    }
 }
+
 
 
 // 알림 컨테이너 추가 (HTML에 없을 경우 추가)
