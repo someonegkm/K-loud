@@ -22,7 +22,7 @@ const roleDisplayNames = {
 let currentSelectedProject = null;
 let userName = null;
 let userId = null;
-const API_URL = 'https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/getproject';
+const API_URL = 'https://nglpet7yod-vpce-0770babf669355393.execute-api.ap-northeast-2.amazonaws.com/prod/getproject';
 
 // WebSocket 연결
 let ws;
