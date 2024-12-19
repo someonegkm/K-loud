@@ -234,10 +234,18 @@ function requireLogin() {
 // 페이지 로딩 시 실행
 document.addEventListener('DOMContentLoaded', function () {
   console.log('DOM fully loaded and parsed');
+
   const authCode = extractCodeFromURL();
   if (authCode) {
-    exchangeCodeForTokens(authCode);
+      exchangeCodeForTokens(authCode); // Authorization Code를 사용해 토큰 교환
   } else {
-    console.log('Authorization Code가 없어서 토큰 교환을 생략합니다.');
+      console.log('Authorization Code가 없어서 토큰 교환을 생략합니다.');
+
+      // 로컬 스토리지에 토큰이 있는 경우 후속 작업 실행
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
+          handlePostLogin(accessToken); // 토큰 기반 후속 작업 실행
+      }
   }
 });
+
