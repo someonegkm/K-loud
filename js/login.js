@@ -1,9 +1,9 @@
 // AWS Cognito 설정
 const poolData = {
-  UserPoolId: 'ap-northeast-2_AOgRZ1a3u',
-  ClientId: '5o12nbraveo9g0g3l7k71njh7k',
-  Domain: 'ap-northeast-2aogrz1a3u.auth.ap-northeast-2.amazoncognito.com',
-  RedirectUri: 'https://kloud-webpage.s3.ap-northeast-2.amazonaws.com/index.html', // CloudFront의 Redirect URI
+  UserPoolId: 'ap-northeast-2_AOgRZ1a3u', // 사용자 풀 ID
+  ClientId: '5o12nbraveo9g0g3l7k71njh7k', // 클라이언트 ID
+  Domain: 'ap-northeast-2aogrz1a3u.auth.ap-northeast-2.amazoncognito.com', // Cognito Hosted UI 도메인
+  RedirectUri: 'https://d1fzhb1yjkhc8i.cloudfront.net', // Redirect URI
 };
 
 const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
