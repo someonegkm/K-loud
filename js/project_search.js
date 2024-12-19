@@ -76,14 +76,56 @@ async function fetchProjects() {
         const projects = await response.json();
         console.log('API 응답 프로젝트 데이터:', projects); // API 응답 로그
 
-        const filteredProjects = projects.filter(project => project.ownerId !== userId && project.maxTeamSize > 0);
-        console.log('필터링된 프로젝트 데이터:', filteredProjects); // 필터링 후 데이터 로그
+        // 필터링된 데이터
+        const filteredProjects = projects.filter(
+            (project) => project.ownerId !== userId && project.maxTeamSize > 0
+        );
+        console.log('필터링된 프로젝트 데이터:', filteredProjects);
 
+        // 프로젝트 렌더링
         renderProjects(filteredProjects);
+
+        // 전체 프로젝트 렌더링 (필터링 없이)
+        renderAllProjects(projects);
     } catch (error) {
         console.error('프로젝트 데이터를 가져오는 중 오류 발생:', error);
     }
 }
+
+function renderAllProjects(projects) {
+    console.log('전체 프로젝트 데이터 렌더링:', projects);
+
+    const allProjectsContainer = document.getElementById('all-projects');
+    allProjectsContainer.innerHTML = ''; // 기존 내용을 초기화
+
+    projects.forEach((project) => {
+        const remainingSlots = Math.max(
+            0,
+            project.maxTeamSize - (project.participants?.length || 0)
+        );
+
+        const roles = project.roles.map(role => roleDisplayNames[role] || role).join(', '); // 지원 유형 구성
+
+        const projectCard = document.createElement('div');
+        projectCard.className = 'project-card';
+
+        projectCard.innerHTML = `
+            <h5>${project.projectName}</h5>
+            <small>프로젝트 유형: ${project.projectType}</small>
+            <br>
+            <small>모집 인원: ${remainingSlots}/${project.maxTeamSize}</small>
+            <br>
+            <small>지원 유형: ${roles}</small> <!-- 추가된 지원 유형 -->
+        `;
+
+        projectCard.addEventListener('click', () => openProjectPopup(project));
+
+        allProjectsContainer.appendChild(projectCard);
+    });
+}
+
+
+
 
 // 프로젝트 렌더링
 function renderProjects(projects) {
@@ -105,6 +147,8 @@ function renderProjects(projects) {
         console.log(`Project: ${project.projectName}, Roles: ${project.roles}, Remaining Slots: ${remainingSlots}`);
         const isParticipated = project.isParticipated;
 
+        const roles = project.roles.map(role => roleDisplayNames[role] || role).join(', '); // 지원 유형 구성
+
         const projectCard = document.createElement('div');
         projectCard.className = 'project-card';
         projectCard.dataset.index = index;
@@ -115,6 +159,8 @@ function renderProjects(projects) {
             <br>
             <small>모집 인원: ${remainingSlots}/${project.maxTeamSize}</small>
             ${isParticipated ? '<small>이미 참여한 프로젝트입니다.</small>' : ''}
+            <br>
+            <small>지원 유형: ${roles}</small> <!-- 추가된 지원 유형 -->
         `;
 
         // 프로젝트 카드 클릭 이벤트 추가
@@ -144,9 +190,6 @@ function renderProjects(projects) {
         });
     });
 }
-
-
-
 
 // 팝업 열기
 function openProjectPopup(project) {
@@ -250,6 +293,8 @@ function resetApplicationForm() {
     applicationNote.value = '';
     applicationSection.style.display = 'none'; // 지원 영역 숨김
 }
+
+
 
 // 초기화 및 WebSocket 연결
 document.addEventListener('DOMContentLoaded', () => {
