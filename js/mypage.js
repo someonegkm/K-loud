@@ -51,7 +51,7 @@ async function fetchUserProfile() {
             return;
         }
 
-        const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile?UserID=${userId}`, {
+        const response = await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/profile?UserID=${userId}`, {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${accessToken}`, // Access Token 사용
@@ -98,7 +98,7 @@ async function fetchUserProjects() {
             return;
         }
 
-        const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/createproject?ownerId=${userId}`, {
+        const response = await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/createproject?ownerId=${userId}`, {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${accessToken}`, // Access Token 사용
@@ -217,7 +217,7 @@ document.getElementById('saveEditButton').addEventListener('click', async functi
 
     try {
         // API Gateway로 PUT 요청
-        const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/updateProject', { // 수정된 API URL
+        const response = await fetch('https://d2miwwhvzmngyp.cloudfront.net/prod/updateProject', { // 수정된 API URL
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ async function deleteProject(projectId) {
             return;
         }
 
-        const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/createproject/${projectId}`, {
+        const response = await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/createproject/${projectId}`, {
             method: 'DELETE',
             headers: {
                 Authorization: `Bearer ${accessToken}`, // Access Token 사용
@@ -283,7 +283,7 @@ async function removeParticipant(projectId, applicantId) {
     }
 
     try {
-        const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/removeParticipant', {
+        const response = await fetch('https://d2miwwhvzmngyp.cloudfront.net/prod/removeParticipant', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -307,7 +307,7 @@ async function removeParticipant(projectId, applicantId) {
 
 //사용자가 참여한 프로젝트 가져오기
 async function fetchMyProjects(userId) {
-    const API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/getAcceptProjects?applicantId=${userId}`;
+    const API_URL = `https://d2miwwhvzmngyp.cloudfront.net/prod/getAcceptProjects?applicantId=${userId}`;
 
     try {
         const accessToken = localStorage.getItem('accessToken');
@@ -397,7 +397,7 @@ function attachFormSubmitEvent() {
         };
 
         try {
-            const response = await fetch('https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile', {
+            const response = await fetch('https://d2miwwhvzmngyp.cloudfront.net/prod/profile', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
