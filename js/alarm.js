@@ -177,51 +177,35 @@ function attachAcceptEvent(alertData) {
 }
 
 // 거절 버튼 클릭 이벤트
-// 거절 버튼 클릭 이벤트
-function attachRejectEvent(alertData) {
-    const rejectButton = document.getElementById('reject-button');
-    rejectButton.onclick = async () => {
-        const projectOwnerId = alertData.projectOwnerId;
-        const timestamp = alertData.timestamp;
+function attachRejectEvent(alertData) { // 'alert' 대신 'alertData'로 변경
+  const rejectButton = document.getElementById('reject-button');
+  rejectButton.onclick = async () => {
+      const projectOwnerId = alertData.projectOwnerId; // 'alert' -> 'alertData'
+      const timestamp = alertData.timestamp; // 'alert' -> 'alertData'
 
-        const API_URL = `https://d2miwwhvzmngyp.cloudfront.net/prod/deleteNotification`;
+      const API_URL = `https://d2miwwhvzmngyp.cloudfront.net/prod/deleteNotification`;
 
-        try {
-            console.log('삭제 요청 데이터:', { projectOwnerId, timestamp });
-
+      try {
             const response = await fetch(API_URL, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    projectOwnerId,
-                    timestamp,
+                    projectOwnerId: projectOwnerId,
+                    timestamp: timestamp,
                 }),
             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`알림 삭제 실패: ${response.status} - ${errorText}`);
-                throw new Error('알림 삭제에 실패했습니다.');
-            }
+          if (!response.ok) throw new Error('알림 삭제에 실패했습니다.');
 
-            window.alert('알림이 성공적으로 삭제되었습니다!');
-
-            // DOM에서 알림 항목 삭제
-            const container = document.getElementById('alert-container');
-            const alertElement = document.querySelector(
-                `.alert-item[data-timestamp="${timestamp}"]`
-            );
-
-            if (alertElement && container) {
-                container.removeChild(alertElement);
-            }
-
-            document.getElementById('application-popup').style.display = 'none'; // 팝업 닫기
-        } catch (error) {
-            console.error('알림 삭제 중 오류 발생:', error);
-            window.alert('알림 삭제 중 문제가 발생했습니다.');
-        }
-    };
+          // JavaScript 기본 alert 함수 호출
+          window.alert('알림이 성공적으로 삭제되었습니다!');
+          document.getElementById('application-popup').style.display = 'none'; // 팝업 닫기
+          fetchUserAlerts(); // 알림 목록 새로고침
+      } catch (error) {
+          console.error('알림 삭제 중 오류 발생:', error);
+          window.alert('알림 삭제 중 문제가 발생했습니다.');
+      }
+  };
 }
 
 
