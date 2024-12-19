@@ -44,10 +44,17 @@ function populateUserProfile() {
 // 사용자 프로필 데이터 가져오기
 async function fetchUserProfile() {
     try {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+            alert('Access Token이 없습니다. 다시 로그인해주세요.');
+            window.location.href = 'login.html';
+            return;
+        }
+
         const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/profile?UserID=${userId}`, {
             method: 'GET',
             headers: {
-                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+                Authorization: `Bearer ${accessToken}`, // Access Token 사용
             },
         });
 
@@ -67,20 +74,12 @@ async function fetchUserProfile() {
         document.getElementById('user-intro').value = userProfile['user-intro'] || '';
 
         // 선호 프로젝트 유형 데이터 할당
-        const preferences = userProfile['user-project-preference'] || []; // 저장된 배열
-        console.log('Preferences:', preferences);
-
+        const preferences = userProfile['user-project-preference'] || [];
         if (Array.isArray(preferences)) {
             preferences.forEach((preference) => {
                 const checkbox = document.querySelector(`#user-project-preference input[value="${preference}"]`);
-                if (checkbox) {
-                    checkbox.checked = true; // 체크박스 체크
-                } else {
-                    console.warn(`체크박스를 찾을 수 없음: ${preference}`);
-                }
+                if (checkbox) checkbox.checked = true;
             });
-        } else {
-            console.error('Preferences는 배열이 아닙니다:', preferences);
         }
     } catch (error) {
         console.error('사용자 데이터 가져오기 오류:', error);
@@ -88,13 +87,21 @@ async function fetchUserProfile() {
     }
 }
 
+
 // 사용자 프로젝트 데이터 가져오기
 async function fetchUserProjects() {
     try {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+            alert('Access Token이 없습니다. 다시 로그인해주세요.');
+            window.location.href = 'login.html';
+            return;
+        }
+
         const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/createproject?ownerId=${userId}`, {
             method: 'GET',
             headers: {
-                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+                Authorization: `Bearer ${accessToken}`, // Access Token 사용
             },
         });
 
@@ -111,6 +118,7 @@ async function fetchUserProjects() {
         alert('프로젝트 데이터를 가져오는 중 오류가 발생했습니다.');
     }
 }
+
 
 // 가져온 프로젝트 데이터를 화면에 렌더링
 function renderUserProjects(projects) {
@@ -237,15 +245,21 @@ document.getElementById('cancelEditButton').addEventListener('click', closeEditP
 // 프로젝트 삭제
 async function deleteProject(projectId) {
     if (!confirm('정말로 이 프로젝트를 삭제하시겠습니까?')) {
-        return; // 사용자가 취소를 선택한 경우
+        return;
     }
 
     try {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+            alert('Access Token이 없습니다. 다시 로그인해주세요.');
+            window.location.href = 'login.html';
+            return;
+        }
+
         const response = await fetch(`https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/createproject/${projectId}`, {
             method: 'DELETE',
             headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 토큰 추가
+                Authorization: `Bearer ${accessToken}`, // Access Token 사용
             },
         });
 
@@ -260,6 +274,7 @@ async function deleteProject(projectId) {
         alert('프로젝트를 삭제하는 중 오류가 발생했습니다.');
     }
 }
+
 
 // 프로젝트 참여한 인원 삭제
 async function removeParticipant(projectId, applicantId) {
@@ -295,11 +310,17 @@ async function fetchMyProjects(userId) {
     const API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/getAcceptProjects?applicantId=${userId}`;
 
     try {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+            alert('Access Token이 없습니다. 다시 로그인해주세요.');
+            window.location.href = 'login.html';
+            return;
+        }
+
         const response = await fetch(API_URL, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('idToken')}`,
+                Authorization: `Bearer ${accessToken}`, // Access Token 사용
             },
         });
 
@@ -309,7 +330,7 @@ async function fetchMyProjects(userId) {
         }
 
         const projects = await response.json();
-        console.log('Lambda 응답:', projects); // 응답 데이터 확인
+        console.log('Lambda 응답:', projects);
         renderMyProjects(projects);
     } catch (error) {
         console.error('참여한 프로젝트 조회 중 오류 발생:', error);
@@ -317,6 +338,7 @@ async function fetchMyProjects(userId) {
         container.innerHTML = '<p>참여한 프로젝트를 가져오는 중 문제가 발생했습니다.</p>';
     }
 }
+
 
 function renderMyProjects(projects) {
     const container = document.getElementById('participated-projects-container');
