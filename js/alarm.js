@@ -17,7 +17,7 @@ async function fetchUserAlerts() {
         const userId = cognitoUser.getUsername();
 
         const projectOwnerId = userId; // 사용자 ID 가져오기
-        const API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/getNotifications?projectOwnerId=${projectOwnerId}`;
+        const API_URL = `https://d2miwwhvzmngyp.cloudfront.net/prod/getNotifications?projectOwnerId=${projectOwnerId}`;
 
         try {
             const response = await fetch(API_URL, {
@@ -123,8 +123,8 @@ function attachAcceptEvent(alertData) {
         const role = alertData.messageContent.role; // 지원자의 역할
         const projectId = alertData.messageContent.projectId; // Room ID
 
-        const ACCEPT_API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/acceptNotification`;
-        const DELETE_API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/deleteNotification`;
+        const ACCEPT_API_URL = `https://d2miwwhvzmngyp.cloudfront.net/prod/acceptNotification`;
+        const DELETE_API_URL = `https://d2miwwhvzmngyp.cloudfront.net/prod/deleteNotification`;
 
         try {
             // 수락 처리 요청
@@ -183,7 +183,7 @@ function attachRejectEvent(alertData) { // 'alert' 대신 'alertData'로 변경
       const projectOwnerId = alertData.projectOwnerId; // 'alert' -> 'alertData'
       const timestamp = alertData.timestamp; // 'alert' -> 'alertData'
 
-      const API_URL = `https://nglpet7yod.execute-api.ap-northeast-2.amazonaws.com/prod/deleteNotification`;
+      const API_URL = `https://d2miwwhvzmngyp.cloudfront.net/prod/deleteNotification`;
 
       try {
             const response = await fetch(API_URL, {
