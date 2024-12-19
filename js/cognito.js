@@ -85,53 +85,56 @@ function validateCognitoConfiguration() {
 
 // Authorization Code를 이용해 토큰 교환
 async function exchangeCodeForTokens(authCode) {
-    if (!validateCognitoConfiguration()) {
+  if (!validateCognitoConfiguration()) {
       console.error('Cognito 설정 오류로 인해 토큰 교환이 중단되었습니다.');
       return;
-    }
-  
-    const tokenEndpoint = `https://${poolData.Domain}/oauth2/token`;
-    const bodyData = new URLSearchParams({
+  }
+
+  const tokenEndpoint = `https://${poolData.Domain}/oauth2/token`;
+  const bodyData = new URLSearchParams({
       grant_type: 'authorization_code',
       client_id: poolData.ClientId,
       redirect_uri: poolData.RedirectUri,
       code: authCode,
-    });
-  
-    console.log('Token 요청 데이터:', bodyData.toString());
-  
-    try {
+  });
+
+  console.log('Token 요청 데이터:', bodyData.toString());
+
+  try {
       const response = await fetch(tokenEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: bodyData.toString(),
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: bodyData.toString(),
       });
-  
+
       console.log('Token 요청 응답 상태:', response.status);
-  
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Token 교환 실패:', errorText);
-        throw new Error('Token 교환 실패');
+          const errorText = await response.text();
+          console.error('Token 교환 실패:', errorText);
+          throw new Error('Token 교환 실패');
       }
-  
+
       const tokens = await response.json();
       console.log('받은 토큰:', tokens);
-  
+
       // 토큰 저장
       localStorage.setItem('accessToken', tokens.access_token);
       localStorage.setItem('idToken', tokens.id_token);
       localStorage.setItem('refreshToken', tokens.refresh_token); // Refresh Token 저장
 
       // 사용자 정보 요청
-      fetchUserInfo(tokens.access_token);
-  
-    } catch (error) {
+      await fetchUserInfo(tokens.access_token);
+
+      // WebSocket 연결
+      connectWebSocket(); // 토큰 저장 후 호출
+  } catch (error) {
       console.error('Token 교환 중 오류 발생:', error);
-    }
   }
+}
+
 
 // 사용자 정보 요청 함수
 async function fetchUserInfo(accessToken) {
