@@ -125,13 +125,26 @@ async function exchangeCodeForTokens(authCode) {
       localStorage.setItem('idToken', tokens.id_token);
       localStorage.setItem('refreshToken', tokens.refresh_token); // Refresh Token 저장
 
-      // 사용자 정보 요청
-      await fetchUserInfo(tokens.access_token);
+      // 사용자 정보 요청 및 후속 작업 실행
+      await handlePostLogin(tokens.access_token);
 
-      // WebSocket 연결
-      connectWebSocket(); // 토큰 저장 후 호출
   } catch (error) {
       console.error('Token 교환 중 오류 발생:', error);
+  }
+}
+
+// 로그인 후 후속 작업 처리
+async function handlePostLogin(accessToken) {
+  try {
+      // 사용자 정보 요청
+      await fetchUserInfo(accessToken);
+
+      // WebSocket 연결
+      connectWebSocket();
+
+      console.log('로그인 후 작업이 모두 완료되었습니다.');
+  } catch (error) {
+      console.error('로그인 후 작업 처리 중 오류 발생:', error);
   }
 }
 
