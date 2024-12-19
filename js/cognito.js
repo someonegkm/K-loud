@@ -85,11 +85,6 @@ function validateCognitoConfiguration() {
 
 // Authorization Code를 이용해 토큰 교환
 async function exchangeCodeForTokens(authCode) {
-  if (!validateCognitoConfiguration()) {
-      console.error('Cognito 설정 오류로 인해 토큰 교환이 중단되었습니다.');
-      return;
-  }
-
   const tokenEndpoint = `https://${poolData.Domain}/oauth2/token`;
   const bodyData = new URLSearchParams({
       grant_type: 'authorization_code',
@@ -97,8 +92,6 @@ async function exchangeCodeForTokens(authCode) {
       redirect_uri: poolData.RedirectUri,
       code: authCode,
   });
-
-  console.log('Token 요청 데이터:', bodyData.toString());
 
   try {
       const response = await fetch(tokenEndpoint, {
@@ -109,18 +102,14 @@ async function exchangeCodeForTokens(authCode) {
           body: bodyData.toString(),
       });
 
-      console.log('Token 요청 응답 상태:', response.status);
-
       if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Token 교환 실패:', errorText);
           throw new Error('Token 교환 실패');
       }
 
       const tokens = await response.json();
       console.log('받은 토큰:', tokens);
 
-      // 토큰 저장
+      // 토큰을 localStorage에 저장
       localStorage.setItem('accessToken', tokens.access_token);
       localStorage.setItem('idToken', tokens.id_token);
       localStorage.setItem('refreshToken', tokens.refresh_token);
@@ -129,7 +118,10 @@ async function exchangeCodeForTokens(authCode) {
       updateLoginState(tokens);
 
       // WebSocket 연결
-      connectWebSocket();
+      connectWebSocket(userPool);
+
+      // 사용자 프로필 데이터 로드
+      populateUserProfile();
 
   } catch (error) {
       console.error('Token 교환 중 오류 발생:', error);
@@ -138,21 +130,23 @@ async function exchangeCodeForTokens(authCode) {
 
 // 로그인 상태 강제 업데이트 함수
 function updateLoginState(tokens) {
-  const accessToken = tokens.access_token;
   const idTokenPayload = JSON.parse(atob(tokens.id_token.split('.')[1]));
   const username = idTokenPayload['cognito:username'] || idTokenPayload.username || 'unknown';
 
   // 사용자 정보를 로컬 스토리지에 저장
   localStorage.setItem('username', username);
-
   console.log('로그인된 사용자:', username);
 
   // 네비게이션 바 상태 업데이트
   updateNavBar(username);
 
-  // 추가적인 UI 업데이트
-  document.getElementById('user-status').textContent = `안녕하세요, ${username}님!`;
+  // 사용자 상태 표시
+  const userStatusElement = document.getElementById('user-status');
+  if (userStatusElement) {
+      userStatusElement.textContent = `안녕하세요, ${username}님!`;
+  }
 }
+
 
 
 
@@ -239,27 +233,24 @@ function requireLogin() {
 }
 
 // 페이지 로딩 시 실행
-document.addEventListener('DOMContentLoaded', function () {
-  console.log('DOM fully loaded and parsed');
-
+document.addEventListener('DOMContentLoaded', () => {
   const authCode = extractCodeFromURL();
   if (authCode) {
-      exchangeCodeForTokens(authCode); // Authorization Code를 사용해 토큰 교환
+      exchangeCodeForTokens(authCode);
   } else {
-      console.log('Authorization Code가 없어서 토큰 교환을 생략합니다.');
-
-      // 로컬 스토리지에 토큰이 있는 경우 로그인 상태 업데이트
       const accessToken = localStorage.getItem('accessToken');
       const username = localStorage.getItem('username');
 
       if (accessToken && username) {
           console.log('로그인된 사용자 상태 복원:', username);
-          updateNavBar(username); // 네비게이션 상태 업데이트
+          updateNavBar(username);
+          connectWebSocket(userPool);
       } else {
           console.log('로그인되지 않은 상태입니다.');
           setLoginLink();
       }
   }
 });
+
 
 
