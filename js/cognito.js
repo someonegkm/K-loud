@@ -123,30 +123,37 @@ async function exchangeCodeForTokens(authCode) {
       // 토큰 저장
       localStorage.setItem('accessToken', tokens.access_token);
       localStorage.setItem('idToken', tokens.id_token);
-      localStorage.setItem('refreshToken', tokens.refresh_token); // Refresh Token 저장
+      localStorage.setItem('refreshToken', tokens.refresh_token);
 
-      // 사용자 정보 요청 및 후속 작업 실행
-      await handlePostLogin(tokens.access_token);
+      // 로그인 상태 강제 업데이트
+      updateLoginState(tokens);
+
+      // WebSocket 연결
+      connectWebSocket();
 
   } catch (error) {
       console.error('Token 교환 중 오류 발생:', error);
   }
 }
 
-// 로그인 후 후속 작업 처리
-async function handlePostLogin(accessToken) {
-  try {
-      // 사용자 정보 요청
-      await fetchUserInfo(accessToken);
+// 로그인 상태 강제 업데이트 함수
+function updateLoginState(tokens) {
+  const accessToken = tokens.access_token;
+  const idTokenPayload = JSON.parse(atob(tokens.id_token.split('.')[1]));
+  const username = idTokenPayload['cognito:username'] || idTokenPayload.username || 'unknown';
 
-      // WebSocket 연결
-      connectWebSocket();
+  // 사용자 정보를 로컬 스토리지에 저장
+  localStorage.setItem('username', username);
 
-      console.log('로그인 후 작업이 모두 완료되었습니다.');
-  } catch (error) {
-      console.error('로그인 후 작업 처리 중 오류 발생:', error);
-  }
+  console.log('로그인된 사용자:', username);
+
+  // 네비게이션 바 상태 업데이트
+  updateNavBar(username);
+
+  // 추가적인 UI 업데이트
+  document.getElementById('user-status').textContent = `안녕하세요, ${username}님!`;
 }
+
 
 
 // 사용자 정보 요청 함수
@@ -241,11 +248,18 @@ document.addEventListener('DOMContentLoaded', function () {
   } else {
       console.log('Authorization Code가 없어서 토큰 교환을 생략합니다.');
 
-      // 로컬 스토리지에 토큰이 있는 경우 후속 작업 실행
+      // 로컬 스토리지에 토큰이 있는 경우 로그인 상태 업데이트
       const accessToken = localStorage.getItem('accessToken');
-      if (accessToken) {
-          handlePostLogin(accessToken); // 토큰 기반 후속 작업 실행
+      const username = localStorage.getItem('username');
+
+      if (accessToken && username) {
+          console.log('로그인된 사용자 상태 복원:', username);
+          updateNavBar(username); // 네비게이션 상태 업데이트
+      } else {
+          console.log('로그인되지 않은 상태입니다.');
+          setLoginLink();
       }
   }
 });
+
 
