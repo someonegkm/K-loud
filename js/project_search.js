@@ -22,7 +22,7 @@ const roleDisplayNames = {
 let currentSelectedProject = null;
 let userName = null;
 let userId = null;
-const API_URL = 'https://d2miwwhvzmngyp.cloudfront.net/api/getproject';
+const API_URL = 'https://d2miwwhvzmngyp.cloudfront.net/prod/getproject';
 
 // WebSocket 연결
 let ws;
