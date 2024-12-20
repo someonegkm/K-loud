@@ -68,7 +68,7 @@ async function fetchStepFunctionsResult(executionArn) {
   const statusMessage = document.getElementById('statusMessage');
   try {
     const idToken = localStorage.getItem('idToken'); // Authorization 헤더 추가
-    const resultUrl = `${STEP_FUNCTIONS_API_URL}/result?executionArn=${encodeURIComponent(executionArn)}`;
+    const STEP_FUNCTIONS_API_URL = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/Top4MatchingAPI';
     const response = await fetch(resultUrl, {
       method: 'GET',
       headers: {
