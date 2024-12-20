@@ -76,13 +76,13 @@ async function fetchProjects() {
         const projects = await response.json();
         console.log('API 응답 프로젝트 데이터:', projects); // API 응답 로그
 
-        // 필터링된 데이터
+        // 내가 만든 프로젝트를 제외한 필터링된 데이터
         const filteredProjects = projects.filter(
-            (project) => project.ownerId !== userId && project.maxTeamSize > 0
+            (project) => project.ownerId !== userId
         );
         console.log('필터링된 프로젝트 데이터:', filteredProjects);
 
-        // 프로젝트 렌더링
+        // 필터링된 프로젝트 렌더링
         renderProjects(filteredProjects);
 
         // 전체 프로젝트 렌더링 (필터링 없이)
@@ -92,13 +92,17 @@ async function fetchProjects() {
     }
 }
 
+// 전체 프로젝트 랜더링 함수
 function renderAllProjects(projects) {
-    console.log('전체 프로젝트 데이터 렌더링:', projects);
-
     const allProjectsContainer = document.getElementById('all-projects');
     allProjectsContainer.innerHTML = ''; // 기존 내용을 초기화
 
-    projects.forEach((project) => {
+    // 전체 탭에서도 ownerId와 maxTeamSize 기준으로 필터링
+    const filteredProjects = projects.filter(
+        (project) => project.ownerId !== userId && project.maxTeamSize > 0
+    );
+
+    filteredProjects.forEach((project) => {
         const remainingSlots = Math.max(
             0,
             project.maxTeamSize - (project.participants?.length || 0)
@@ -115,7 +119,7 @@ function renderAllProjects(projects) {
             <br>
             <small>모집 인원: ${remainingSlots}/${project.maxTeamSize}</small>
             <br>
-            <small>지원 유형: ${roles}</small> <!-- 추가된 지원 유형 -->
+            <small>지원 유형: ${roles}</small>
         `;
 
         projectCard.addEventListener('click', () => openProjectPopup(project));
@@ -123,8 +127,6 @@ function renderAllProjects(projects) {
         allProjectsContainer.appendChild(projectCard);
     });
 }
-
-
 
 
 // 프로젝트 렌더링
