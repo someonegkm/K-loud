@@ -17,6 +17,7 @@
   <!-- Custom Styles for This Template -->
   <link href="css/style.css" rel="stylesheet" />
   <link href="css/responsive.css" rel="stylesheet" />
+
 </head>
 
 <body class="sub_page">
@@ -32,15 +33,16 @@
             data-target="#navbarSupportedContent">
             <span class=""> </span>
           </button>
+
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav">
-              <li class="nav-item "><a class="nav-link" href="index.html">Home </a></li>
-              <li class="nav-item active"><a class="nav-link" href="project_search.html"> 프로젝트 찾기</a></li>
+              <li class="nav-item "><a class="nav-link" href="index.html">Home</a></li>
+              <li class="nav-item active"><a class="nav-link" href="project_search.html">프로젝트 찾기</a></li>
               <li class="nav-item"><a class="nav-link" href="project_create.html">프로젝트 만들기</a></li>
               <li class="nav-item"><a class="nav-link" href="alarm.html">알림</a></li>
               <li class="nav-item"><a class="nav-link" href="mypage.html">마이페이지</a></li>
               <li class="nav-item" id="login-logout-item">
-                <a class="nav-link" href="login.html" id="login-logout-link"><i class="fa fa-user" aria-hidden="true"></i> 로그인</a>
+                <a class="nav-link" href="login.html" id="login-logout-link"><i class="fa fa-user"></i> 로그인</a>
               </li>
               <form class="form-inline">
                 <button class="btn my-2 my-sm-0 nav_search-btn" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
@@ -67,9 +69,10 @@
         <div class="heading_container heading_center">
           <h2>프로젝트 매칭 결과</h2>
         </div>
-        <div id="project-list">
-          <!-- 결과 표시 영역 -->
-        </div>
+        <button id="startMatchingBtn" class="btn btn-primary">매칭 시작</button>
+        <button id="fetchResultBtn" class="btn btn-secondary" style="margin-left:10px;">결과 가져오기</button>
+        <div id="statusMessage" style="margin-top:20px;"></div>
+        <div id="project-list" style="margin-top:20px;"></div>
       </div>
     </div>
   </div>
@@ -90,7 +93,6 @@
 
   <div id="notification-container" style="position: fixed; bottom: 20px; right:20px; z-index:9999;"></div>
 
-  <!-- AWS Cognito JavaScript SDK -->
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
   <script src="js/cognito.js"></script>
   <script src="js/project_matching.js"></script>
@@ -100,14 +102,31 @@
       console.log('페이지 로드');
       updateNavBar();
       connectWebSocket(userPool);
+
+      const fetchResultBtn = document.getElementById('fetchResultBtn');
+      fetchResultBtn.onclick = function() {
+        if (!window.currentExecutionArn) {
+          alert('매칭을 시작한 적이 없습니다. 매칭 시작 버튼을 먼저 눌러주세요.');
+          return;
+        }
+        fetchStepFunctionsResult(window.currentExecutionArn);
+      };
+
+      const startMatchingBtn = document.getElementById('startMatchingBtn');
+      startMatchingBtn.onclick = function() {
+        const userId = getLoggedInUserId();
+        if (!userId) {
+          alert('로그인이 필요합니다.');
+          window.location.href = 'login.html';
+          return;
+        }
+        startStepFunctions(userId);
+      };
     };
   </script>
 
-  <!-- jQuery -->
   <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
-  <!-- Popper.js -->
   <script type="text/javascript" src="js/popper.min.js"></script>
-  <!-- Bootstrap JS -->
   <script type="text/javascript" src="js/bootstrap.js"></script>
   <script type="text/javascript" src="js/custom.js"></script>
 
