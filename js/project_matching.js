@@ -1,7 +1,9 @@
 // project_matching.js
 
-// 실제 API Gateway Invoke URL로 변경 필요
+// StepFunctionsTriggerAPI - 매칭 시작용
 const STEP_FUNCTIONS_API_URL = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/StepFunctionsTriggerAPI';
+// Top4MatchingAPI - 매칭 결과 조회용
+const TOP4_MATCHING_API_URL = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/Top4MatchingAPI';
 
 function getLoggedInUserId() {
   const cognitoUser = userPool.getCurrentUser();
@@ -68,7 +70,16 @@ async function fetchStepFunctionsResult(executionArn) {
   const statusMessage = document.getElementById('statusMessage');
   try {
     const idToken = localStorage.getItem('idToken'); // Authorization 헤더 추가
-    const STEP_FUNCTIONS_API_URL = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/Top4MatchingAPI';
+    const userId = getLoggedInUserId();
+    if (!userId) {
+      alert('로그인이 필요합니다.');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Top4MatchingAPI는 userId를 쿼리 파라미터로 받는다고 가정
+    const resultUrl = `${TOP4_MATCHING_API_URL}?userId=${encodeURIComponent(userId)}`;
+
     const response = await fetch(resultUrl, {
       method: 'GET',
       headers: {
@@ -85,17 +96,19 @@ async function fetchStepFunctionsResult(executionArn) {
     const result = await response.json();
     console.log('Step Functions Execution Result:', result);
 
-    if (result.status === 'SUCCEEDED') {
-      console.log('Final Result:', result.output);
-      const output = JSON.parse(result.output); 
-      renderMatchingProjects(output.top_4);
+    // top4matching API는 "status" 필드가 아니라 바로 top_4를 반환하는 구조일 수 있으므로 확인 필요
+    // 이전 로직에서는 result.status를 체크했으나 top4matching.py 코드 상 status 필드가 없음
+    // top4matching.py는 message, userId, top_4만 반환
+    // SUCCEEDED나 FAILED 상태를 판단하는 대신 top_4 길이로 결과 확인
+    if (Array.isArray(result.top_4)) {
+      // 매칭 결과가 있음
+      renderMatchingProjects(result.top_4);
       statusMessage.innerHTML = '<p>매칭 결과가 아래에 표시되었습니다.</p>';
-    } else if (result.status === 'FAILED') {
-      statusMessage.innerHTML = '<p>매칭이 실패했습니다. 다시 시도해주세요.</p>';
     } else {
-      // RUNNING 상태
-      statusMessage.innerHTML = '<p>아직 매칭이 완료되지 않았습니다. 잠시 후 다시 "결과 가져오기" 버튼을 눌러주세요.</p>';
+      // 결과가 없거나 매칭 중일 경우
+      statusMessage.innerHTML = '<p>아직 매칭 결과가 준비되지 않았습니다. 잠시 후 다시 시도해주세요.</p>';
     }
+
   } catch (error) {
     console.error('Error fetching Step Functions result:', error.message);
     alert(`Error fetching Step Functions result: ${error.message}`);
