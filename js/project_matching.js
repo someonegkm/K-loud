@@ -27,8 +27,6 @@ function updateNavBar() {
 }
 
 async function startStepFunctions(userId) {
-  // 매칭 시작 시 Step Functions 실행하고 executionArn만 받아옴
-  // 바로 결과 폴링하지 않고, 사용자에게 3~4분 기다렸다가 "결과 가져오기" 버튼 누르도록 안내
   const statusMessage = document.getElementById('statusMessage');
   try {
     console.log('Starting Step Functions with userId:', userId);
@@ -56,7 +54,7 @@ async function startStepFunctions(userId) {
     console.log('Step Functions Execution Details:', executionDetails);
     window.currentExecutionArn = executionDetails.executionArn;
 
-    // 실행 ARN 저장 후 사용자에게 기다리라고 안내
+    // 실행 ARN 저장 후 사용자에게 대기 안내
     statusMessage.innerHTML = '<p>매칭이 시작되었습니다. 약 3~4분 후 "결과 가져오기" 버튼을 눌러 결과를 조회하세요.</p>';
 
   } catch (error) {
@@ -66,13 +64,17 @@ async function startStepFunctions(userId) {
   }
 }
 
-// fetchStepFunctionsResult는 이제 한 번만 호출
-// 결과가 아직 준비 안 되었으면 "아직 매칭 중" 메시지 출력
 async function fetchStepFunctionsResult(executionArn) {
   const statusMessage = document.getElementById('statusMessage');
   try {
+    const idToken = localStorage.getItem('idToken'); // Authorization 헤더 추가
     const resultUrl = `${STEP_FUNCTIONS_API_URL}/result?executionArn=${encodeURIComponent(executionArn)}`;
-    const response = await fetch(resultUrl);
+    const response = await fetch(resultUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${idToken}`
+      }
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
