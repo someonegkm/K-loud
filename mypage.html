@@ -80,10 +80,14 @@
               <li class="nav-item"><a class="nav-link" href="alarm.html">알림</a></li>
               <li class="nav-item active"><a class="nav-link" href="mypage.html">마이페이지 <span class="sr-only">(current)</span></a></li>
               <li class="nav-item" id="login-logout-item">
-                <a class="nav-link" href="login.html" id="login-logout-link"><i class="fa fa-user" aria-hidden="true"></i> 로그인</a>
+                <a class="nav-link" href="login.html" id="login-logout-link">
+                  <i class="fa fa-user" aria-hidden="true"></i> 로그인
+                </a>
               </li>
               <form class="form-inline">
-                <button class="btn my-2 my-sm-0 nav_search-btn" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+                <button class="btn my-2 my-sm-0 nav_search-btn" type="submit">
+                  <i class="fa fa-search" aria-hidden="true"></i>
+                </button>
               </form>
             </ul>
           </div>
@@ -123,6 +127,7 @@
         <!-- 내 프로젝트 -->
         <div class="tab-pane fade show active" id="my-projects" role="tabpanel" aria-labelledby="my-projects-tab">
           <h3>내 프로젝트</h3>
+          <!-- 사용자가 소유한 프로젝트 목록 -->
           <div id="user-projects-container"></div>
 
           <!-- 2단 레이아웃: 왼쪽(프로젝트 상세정보), 오른쪽(매칭된 유저) -->
@@ -133,6 +138,7 @@
                 <p>프로젝트를 선택하면 상세정보가 표시됩니다.</p>
               </div>
               <div style="margin-top:10px;">
+                <!-- 원래 코드: 기존엔 없었을 수 있지만, 방장 관점 매칭 위해 추가 -->
                 <button id="startMatchingBtn" class="btn btn-primary" disabled>매칭 실행</button>
                 <button id="fetchResultBtn" class="btn btn-secondary" disabled>결과 가져오기</button>
               </div>
@@ -149,8 +155,8 @@
 
         <!-- 프로젝트 수정 팝업 -->
         <div id="edit-project-popup"
-             style="display: none; position: fixed; top: 50%; left:50%; transform: translate(-50%, -50%);
-                    background-color: white; width: 50%; padding: 20px; box-shadow:0 4px 8px rgba(0,0,0,0.2);
+             style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                    background-color: white; width: 50%; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
                     z-index:1000; border-radius:10px;">
           <h3>프로젝트 수정</h3>
           <form id="edit-project-form">
