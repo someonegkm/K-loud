@@ -55,7 +55,7 @@ async function fetchUserProfile() {
             return;
         }
 
-        const response = await fetch(`https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/profile?UserID=${userId}`, {
+        const response = await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/profile?UserID=${userId}`, {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${accessToken}`
@@ -286,7 +286,7 @@ async function deleteProject(projectId){
       alert('로그인 필요');
       return;
     }
-    const resp=await fetch(`https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/createproject/${projectId}`, {
+    const resp=await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/createproject/${projectId}`, {
       method:'DELETE',
       headers:{ 'Authorization': `Bearer ${accessToken}` }
     });
@@ -329,7 +329,7 @@ document.getElementById('saveEditButton').onclick= async function(){
     maxTeamSize: parseInt(document.getElementById('edit-maxTeamSize').value,10)
   };
   try {
-    const resp=await fetch('https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/updateProject',{
+    const resp=await fetch('https://d2miwwhvzmngyp.cloudfront.net/prod/updateProject',{
       method:'PUT',
       headers:{
         'Content-Type':'application/json',
@@ -351,7 +351,7 @@ document.getElementById('saveEditButton').onclick= async function(){
 async function removeParticipant(projectId, applicantId){
   if(!confirm('정말 참가자를 내쫓으시겠습니까?')) return;
   try {
-    const resp=await fetch('https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/removeParticipant',{
+    const resp=await fetch('https://d2miwwhvzmngyp.cloudfront.net/prod/removeParticipant',{
       method:'DELETE',
       headers:{
         'Content-Type':'application/json',
@@ -373,15 +373,72 @@ async function removeParticipant(projectId, applicantId){
 
 // 9) "참여 프로젝트" (이미 존재하는 부분)
 // 아래는 기존 코드 그대로 유지
-async function fetchMyProjects(userId){
-  // ...
-  // 원본 코드에 있던 API
-  // ...
-  // renderMyProjects(...)
+async function fetchMyProjects(userId) {
+    const API_URL = `https://d2miwwhvzmngyp.cloudfront.net/prod/getAcceptProjects?applicantId=${userId}`;
+
+    try {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+            alert('Access Token이 없습니다. 다시 로그인해주세요.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const response = await fetch(API_URL, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${accessToken}`, // Access Token 사용
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`참여한 프로젝트 조회 실패: ${response.status} - ${errorText}`);
+        }
+
+        const projects = await response.json();
+        console.log('Lambda 응답:', projects);
+        renderMyProjects(projects);
+    } catch (error) {
+        console.error('참여한 프로젝트 조회 중 오류 발생:', error);
+        const container = document.getElementById('participated-projects-container');
+        container.innerHTML = '<p>참여한 프로젝트를 가져오는 중 문제가 발생했습니다.</p>';
+    }
 }
-function renderMyProjects(projects){
-  // ...
-  // 원본 코드
+
+function renderMyProjects(projects) {
+    const container = document.getElementById('participated-projects-container');
+
+    if (!container) {
+        console.error("참여한 프로젝트 컨테이너가 존재하지 않습니다.");
+        return;
+    }
+
+    container.innerHTML = ''; // 기존 데이터 초기화
+
+    if (projects.length === 0) {
+        container.innerHTML = '<p>참여한 프로젝트가 없습니다.</p>';
+        return;
+    }
+
+    projects.forEach(project => {
+        console.log('프로젝트 데이터:', project); // 각 프로젝트 데이터 확인
+
+        const projectItem = document.createElement('div');
+        projectItem.className = 'project-item';
+        projectItem.style.border = '1px solid #ccc';
+        projectItem.style.padding = '10px';
+        projectItem.style.marginBottom = '10px';
+
+        // projectName이 없으면 기본값으로 처리
+        projectItem.innerHTML = `
+            <h4>${project.projectName || '프로젝트 이름 없음'}</h4>
+            <p><strong>방장:</strong> ${project.projectOwnerId}</p>
+            <p><strong>참여 시간:</strong> ${new Date(Number(project.timestamp)).toLocaleString()}</p>
+        `;
+
+        container.appendChild(projectItem);
+    });
 }
 
 // 10) 회원정보 폼 제출
@@ -401,7 +458,7 @@ function attachFormSubmitEvent(){
       user_intro: document.getElementById('user-intro').value
     };
     try {
-      const resp=await fetch('https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/profile',{
+      const resp=await fetch('https://d2miwwhvzmngyp.cloudfront.net/prod/profile',{
         method:'POST',
         headers:{
           'Content-Type': 'application/json',
