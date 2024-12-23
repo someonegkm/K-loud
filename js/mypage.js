@@ -91,7 +91,7 @@ async function fetchUserProjects() {
             return;
         }
         // 원래 URL: createproject?ownerId=
-        const response = await fetch(`${USER_PROJECTS_API}?ownerId=${userId}`, {
+        const response = await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/profile?UserID=${userId}`, {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${accessToken}`
