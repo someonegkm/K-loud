@@ -51,34 +51,44 @@ async function fetchUserProfile() {
     try {
         const accessToken = localStorage.getItem('accessToken');
         if (!accessToken) {
-            console.warn('accessToken 없음');
+            alert('Access Token이 없습니다. 다시 로그인해주세요.');
+            window.location.href = 'login.html';
             return;
         }
 
         const response = await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/profile?UserID=${userId}`, {
             method: 'GET',
             headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
+                Authorization: `Bearer ${accessToken}`, // Access Token 사용
+            },
         });
-        if (!response.ok) throw new Error('사용자 프로필 데이터를 가져오지 못했습니다.');
+
+        if (!response.ok) {
+            throw new Error('사용자 프로필 데이터를 가져오지 못했습니다.');
+        }
 
         const userProfile = await response.json();
-        console.log('사용자 데이터:', userProfile);
+        console.log('가져온 사용자 데이터:', userProfile);
+
+        // 사용자 프로필 데이터 채우기
+        document.getElementById('user-name').value = userProfile.name || '';
+        document.getElementById('user-email').value = userProfile.email || '';
         document.getElementById('user-techstack').value = userProfile['user-techstack'] || '';
         document.getElementById('user-project-experience').value = userProfile['user-project-experience'] || '';
         document.getElementById('user-github').value = userProfile['user-github'] || '';
         document.getElementById('user-intro').value = userProfile['user-intro'] || '';
 
-        const prefs = userProfile['user-project-preference'] || [];
-        if (Array.isArray(prefs)) {
-            prefs.forEach(pref => {
-                const checkbox = document.querySelector(`#user-project-preference input[value="${pref}"]`);
+        // 선호 프로젝트 유형 데이터 할당
+        const preferences = userProfile['user-project-preference'] || [];
+        if (Array.isArray(preferences)) {
+            preferences.forEach((preference) => {
+                const checkbox = document.querySelector(`#user-project-preference input[value="${preference}"]`);
                 if (checkbox) checkbox.checked = true;
             });
         }
     } catch (error) {
         console.error('사용자 데이터 가져오기 오류:', error);
+        alert('사용자 데이터를 가져오는 중 오류가 발생했습니다.');
     }
 }
 
