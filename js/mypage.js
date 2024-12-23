@@ -87,24 +87,28 @@ async function fetchUserProjects() {
     try {
         const accessToken = localStorage.getItem('accessToken');
         if (!accessToken) {
-            alert('로그인 토큰이 없습니다.');
+            alert('Access Token이 없습니다. 다시 로그인해주세요.');
+            window.location.href = 'login.html';
             return;
         }
-        // 원래 URL: createproject?ownerId=
-        const response = await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/profile?UserID=${userId}`, {
+
+        const response = await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/createproject?ownerId=${userId}`, {
             method: 'GET',
             headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
+                Authorization: `Bearer ${accessToken}`, // Access Token 사용
+            },
         });
-        if (!response.ok) throw new Error('프로젝트 목록 가져오기 실패');
 
-        const data = await response.json();
-        console.log('프로젝트 목록:', data);
-        // data.data 형식일 수도 있으니 확인
-        renderUserProjects(data.data || data.projects || []);
+        if (!response.ok) {
+            throw new Error('사용자 프로젝트 데이터를 가져오지 못했습니다.');
+        }
+
+        const userProjects = await response.json();
+        console.log('가져온 프로젝트 데이터:', userProjects);
+
+        renderUserProjects(userProjects.data || []);
     } catch (error) {
-        console.error('프로젝트 데이터 가져오는 중 오류:', error);
+        console.error('사용자 프로젝트 가져오기 오류:', error);
         alert('프로젝트 데이터를 가져오는 중 오류가 발생했습니다.');
     }
 }
