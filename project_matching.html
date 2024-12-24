@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -18,21 +17,19 @@
   <link href="css/style.css" rel="stylesheet" />
   <link href="css/responsive.css" rel="stylesheet" />
 
-  <!-- 팝업(모달) 관련 간단한 스타일 예시 -->
+  <!-- 모달(팝업) 관련 간단한 스타일 -->
   <style>
-    /* 팝업 배경 */
+    /* 모달 배경 */
     #project-popup {
       display: none;
       position: fixed;
       z-index: 9999;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
       overflow: auto;
       background-color: rgba(0, 0, 0, 0.5);
     }
-    /* 팝업 내용박스 */
+    /* 모달 박스 */
     #project-popup .popup-content {
       background-color: #fff;
       margin: 10% auto;
@@ -57,6 +54,8 @@
       background-color: #ccc;
       cursor: not-allowed;
     }
+
+    /* 프로젝트 카드 예시 */
     .project-card {
       border: 1px solid #ddd;
       padding: 10px;
@@ -64,7 +63,6 @@
       cursor: pointer;
     }
   </style>
-
 </head>
 
 <body class="sub_page">
@@ -119,42 +117,61 @@
         <div class="heading_container heading_center">
           <h2>프로젝트 매칭 결과</h2>
         </div>
+
+        <!-- 매칭: 시작/결과 -->
         <button id="startMatchingBtn" class="btn btn-primary">매칭 시작</button>
         <button id="fetchResultBtn" class="btn btn-secondary" style="margin-left:10px;">결과 가져오기</button>
         <div id="statusMessage" style="margin-top:20px;"></div>
+        <!-- 매칭 결과 표시 영역 -->
         <div id="project-list" style="margin-top:20px;"></div>
+
+        <hr />
+
+        <!-- 일반 프로젝트 목록 (전체 + 역할별) -->
+        <h4>전체 프로젝트</h4>
+        <div id="all-projects"></div>
+
+        <h4>프론트엔드</h4>
+        <div id="frontend-projects"></div>
+
+        <h4>백엔드</h4>
+        <div id="backend-projects"></div>
+
+        <h4>디자인</h4>
+        <div id="design-projects"></div>
+
+        <h4>기획(Planning/PM)</h4>
+        <div id="planning-projects"></div>
+
       </div>
     </div>
   </div>
 
-  <!-- 팝업 구조 (추가됨) -->
+  <!-- 모달(팝업) -->
   <div id="project-popup">
     <div class="popup-content">
       <span id="close-popup" class="popup-close">&times;</span>
-      <h2 id="popup-title"></h2>
-
-      <p><strong>프로젝트 유형:</strong> <span id="popup-type"></span></p>
+      <h5 id="popup-title"></h5>
+      <p><strong>프로젝트 설명:</strong> <span id="popup-description"></span></p>
       <p><strong>기술 스택:</strong> <span id="popup-techstack"></span></p>
+      <p><strong>프로젝트 유형:</strong> <span id="popup-type"></span></p>
       <p><strong>모집 인원:</strong> <span id="popup-recruitment"></span></p>
-      <p><strong>프로젝트 기간(일):</strong> <span id="popup-duration"></span></p>
-
-      <p><strong>설명:</strong></p>
-      <p id="popup-description"></p>
+      <p><strong>기간:</strong> <span id="popup-duration"></span></p>
+      <p><strong>방장 닉네임:</strong> <span id="popup-owner-name"></span></p>
 
       <!-- 지원하기 버튼 -->
-      <button id="apply-button">지원하기</button>
+      <button id="apply-button" class="btn btn-primary">지원하기</button>
 
-      <!-- 실제 지원 영역 (처음에는 숨김) -->
+      <!-- 지원 폼 (처음엔 숨김) -->
       <div id="application-section" style="display:none; margin-top:20px;">
         <h5>지원할 역할 선택</h5>
         <div id="application-roles"></div>
-        <textarea id="application-note" rows="4" cols="50" placeholder="하고 싶은 말 (지원 동기 등)"></textarea>
+        <textarea id="application-note" rows="3" cols="50" placeholder="지원 내용을 작성하세요"></textarea>
         <br /><br />
         <button id="submit-application" class="btn btn-success">지원 제출</button>
       </div>
     </div>
   </div>
-  <!-- // 팝업 구조 끝 -->
 
   <section class="info_section layout_padding2">
     <div class="container">
@@ -174,17 +191,22 @@
 
   <!-- Amazon Cognito JS -->
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
+  <!-- cognito.js (UserPool 등) -->
   <script src="js/cognito.js"></script>
+  <!-- WebSocket JS (필요하면) -->
   <script src="js/websocket.js"></script>
-  <!-- 수정된 project_matching.js (전체) -->
+
+  <!-- 프로젝트 매칭 JS (통합본) -->
   <script src="js/project_matching.js"></script>
 
   <script>
     window.onload = function() {
       console.log('페이지 로드');
       updateNavBar();
-      connectWebSocket(userPool);
+      // 웹소켓 연결 필요 시
+      // connectWebSocket();
 
+      // 매칭 결과 버튼 로직
       const fetchResultBtn = document.getElementById('fetchResultBtn');
       fetchResultBtn.onclick = function() {
         if (!window.currentExecutionArn) {
@@ -211,7 +233,7 @@
   <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
   <!-- Bootstrap JS -->
   <script type="text/javascript" src="js/bootstrap.js"></script>
-  <!-- custom.js -->
+  <!-- custom.js (캐러셀 등) -->
   <script type="text/javascript" src="js/custom.js"></script>
 
 </body>
