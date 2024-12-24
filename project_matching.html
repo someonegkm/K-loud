@@ -18,19 +18,21 @@
   <link href="css/style.css" rel="stylesheet" />
   <link href="css/responsive.css" rel="stylesheet" />
 
-  <!-- 팝업(모달) 관련 간단 스타일 -->
+  <!-- 팝업(모달) 관련 간단한 스타일 -->
   <style>
-    /* 팝업 배경 */
+    /* 모달 배경 */
     #project-popup {
       display: none;
       position: fixed;
       z-index: 9999;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      overflow: auto;
-      background-color: rgba(0, 0, 0, 0.5);
+      left: 0; 
+      top: 0;
+      width: 100%; 
+      height: 100%;
+      overflow: auto; 
+      background-color: rgba(0,0,0,0.5);
     }
-    /* 팝업 내용박스 */
+    /* 모달 내용박스 */
     #project-popup .popup-content {
       background-color: #fff;
       margin: 10% auto;
@@ -41,8 +43,9 @@
       position: relative;
     }
     #close-popup {
-      position: absolute;
-      right: 15px; top: 15px;
+      position: absolute; 
+      top: 15px; 
+      right: 15px;
       cursor: pointer;
       font-size: 18px;
     }
@@ -57,7 +60,7 @@
       background-color: #ccc;
       cursor: not-allowed;
     }
-    /* 프로젝트 카드 */
+    /* 프로젝트 카드 (목록용) */
     .project-card {
       border: 1px solid #ddd;
       padding: 10px;
@@ -65,7 +68,6 @@
       cursor: pointer;
     }
   </style>
-
 </head>
 
 <body class="sub_page">
@@ -83,7 +85,7 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav">
-              <li class="nav-item "><a class="nav-link" href="index.html">Home</a></li>
+              <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
               <li class="nav-item active"><a class="nav-link" href="project_search.html">프로젝트 찾기</a></li>
               <li class="nav-item"><a class="nav-link" href="project_create.html">프로젝트 만들기</a></li>
               <li class="nav-item"><a class="nav-link" href="alarm.html">알림</a></li>
@@ -105,32 +107,32 @@
     </header>
   </div>
 
+  <!-- 메인 컨테이너 -->
   <div class="container-fluid">
     <div class="row">
-      <!-- 좌측 네비게이션 -->
-      <div class="col-md-3" style="background-color: #f8f9fa; padding: 20px;">
+      <!-- 좌측 사이드바 -->
+      <div class="col-md-3" style="background-color: #f8f9fa; padding:20px;">
         <div class="list-group">
           <a href="project_search.html" class="list-group-item list-group-item-action">프로젝트 목록</a>
           <a href="project_matching.html" class="list-group-item list-group-item-action active">프로젝트 매칭하기</a>
         </div>
       </div>
-  
-      <!-- 우측 영역 -->
+      <!-- 우측 컨텐츠 -->
       <div class="col-md-9">
         <div class="heading_container heading_center">
           <h2>프로젝트 매칭 결과</h2>
         </div>
-
         <!-- 매칭 버튼들 -->
         <button id="startMatchingBtn" class="btn btn-primary">매칭 시작</button>
         <button id="fetchResultBtn" class="btn btn-secondary" style="margin-left:10px;">결과 가져오기</button>
         <div id="statusMessage" style="margin-top:20px;"></div>
-        <!-- 매칭 결과 표시 -->
+
+        <!-- 매칭 결과 (카드) -->
         <div id="project-list" style="margin-top:20px;"></div>
 
-        <hr />
+        <hr/>
 
-        <!-- 전체 프로젝트(왼쪽 코드) -->
+        <!-- 전체 프로젝트 -->
         <h4>전체 프로젝트</h4>
         <div id="all-projects"></div>
 
@@ -165,12 +167,12 @@
       <!-- 지원하기 버튼 -->
       <button id="apply-button" class="btn btn-primary">지원하기</button>
 
-      <!-- 지원 영역 -->
+      <!-- 지원 영역 (처음엔 숨김) -->
       <div id="application-section" style="display:none; margin-top:20px;">
         <h5>지원할 역할 선택</h5>
         <div id="application-roles"></div>
-        <textarea id="application-note" rows="4" cols="50" placeholder="지원 이유 등을 작성하세요"></textarea>
-        <br /><br />
+        <textarea id="application-note" rows="4" cols="50" placeholder="지원 동기 등을 입력해주세요"></textarea>
+        <br/><br/>
         <button id="submit-application" class="btn btn-success">지원 제출</button>
       </div>
     </div>
@@ -194,26 +196,28 @@
 
   <!-- Amazon Cognito JS -->
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
+  <!-- cognito.js (UserPool etc.) -->
   <script src="js/cognito.js"></script>
-  <!-- 통합 JS -->
+  <!-- 통합 project_matching.js -->
   <script src="js/project_matching.js"></script>
 
   <script>
+    // 페이지 로드 시
     window.onload = function() {
       console.log('페이지 로드');
       updateNavBar();
 
-      // 매칭 결과 가져오기 버튼
+      // "결과 가져오기"
       const fetchResultBtn = document.getElementById('fetchResultBtn');
       fetchResultBtn.onclick = function() {
         if (!window.currentExecutionArn) {
-          alert('아직 매칭을 시작하지 않았습니다. "매칭 시작" 버튼을 눌러주세요.');
+          alert('아직 매칭을 시작하지 않았습니다. "매칭 시작" 버튼 먼저 클릭하세요.');
           return;
         }
         fetchStepFunctionsResult(window.currentExecutionArn);
       };
 
-      // 매칭 시작 버튼
+      // "매칭 시작"
       const startMatchingBtn = document.getElementById('startMatchingBtn');
       startMatchingBtn.onclick = function() {
         const userId = getLoggedInUserId();
@@ -231,7 +235,7 @@
   <script src="js/jquery-3.4.1.min.js"></script>
   <!-- Bootstrap JS -->
   <script src="js/bootstrap.js"></script>
-  <!-- custom.js (owlCarousel 문제 시 주석 처리) -->
+  <!-- custom.js (owlCarousel 있으면 주석) -->
   <script src="js/custom.js"></script>
 </body>
 </html>

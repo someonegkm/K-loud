@@ -2,15 +2,11 @@
 // project_matching.js (최종 통합본)
 //----------------------------------------------------
 
-// =====================================
-// A. Step Functions 매칭 관련 URL
-// =====================================
+// A. Step Functions 매칭 URL
 const STEP_FUNCTIONS_API_URL = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/StepFunctionsTriggerAPI';
 const TOP4_MATCHING_API_URL = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/Top4MatchingAPI';
 
-// =====================================
-// B. Cognito 로그인/세션
-// =====================================
+// B. Cognito 관련
 function getLoggedInUserId() {
   const cognitoUser = userPool.getCurrentUser();
   return cognitoUser ? cognitoUser.getUsername() : null;
@@ -23,7 +19,7 @@ function updateNavBar() {
   if (cognitoUser) {
     loginLogoutLink.textContent = '로그아웃';
     loginLogoutLink.href = '#';
-    loginLogoutLink.onclick = function () {
+    loginLogoutLink.onclick = function() {
       cognitoUser.signOut();
       window.location.href = 'login.html';
     };
@@ -34,19 +30,17 @@ function updateNavBar() {
   }
 }
 
-// =====================================
-// C. WebSocket (원하면 사용)
-// =====================================
+// C. WebSocket (선택)
 let ws = null;
 function connectWebSocket() {
   const cognitoUser = userPool.getCurrentUser();
   if (!cognitoUser) {
-    console.error('로그인 안 됨 → WebSocket 연결 불가');
+    console.error('로그인되지 않음 → WebSocket 연결 불가');
     return;
   }
   cognitoUser.getSession((err, session) => {
     if (err) {
-      console.error('세션 획득 에러:', err);
+      console.error('세션 오류:', err);
       return;
     }
     const userId = cognitoUser.getUsername();
@@ -54,20 +48,18 @@ function connectWebSocket() {
     ws = new WebSocket(wsUrl);
 
     ws.onopen = () => console.log('WebSocket 연결 성공');
-    ws.onmessage = (evt) => alert('새 알림: ' + evt.data);
+    ws.onmessage = (e) => alert('새 알림: ' + e.data);
     ws.onclose = () => console.log('WebSocket 연결 종료');
     ws.onerror = (e) => console.error('WebSocket 에러:', e);
   });
 }
 
-// =====================================
-// D. 프로젝트 목록 API (왼쪽 코드)
-// =====================================
+// D. 전체 프로젝트 목록 API
 const API_URL = 'https://d2miwwhvzmngyp.cloudfront.net/prod/getproject';
 let userName = null;
 let userId = null;
 
-// 역할 표기
+// 역할 표시
 const roleDisplayNames = {
   frontend: "프론트엔드",
   backend: "백엔드",
@@ -75,133 +67,117 @@ const roleDisplayNames = {
   pm: "기획"
 };
 
-// 1) fetchProjects
+// 1) fetchProjects()
 async function fetchProjects() {
   console.log('[fetchProjects] 호출');
-  userId = getLoggedInUserId(); // 로그인 사용자ID
+  userId = getLoggedInUserId(); 
   if (!userId) {
-    console.log('로그인 정보가 없어 프로젝트 요청 못 함');
+    console.log('로그인 안 됨 → fetchProjects 생략');
     return;
   }
   try {
-    const response = await fetch(`${API_URL}?userId=${userId}`, {
+    const resp = await fetch(`${API_URL}?userId=${userId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
-    if (!response.ok) throw new Error('프로젝트 API 요청 실패');
-
-    const projects = await response.json();
-    console.log('전체 프로젝트:', projects);
+    if (!resp.ok) throw new Error('프로젝트 API 요청 실패');
+    const projects = await resp.json();
+    console.log('[fetchProjects] 전체 프로젝트:', projects);
 
     // 내가 만든 프로젝트 제외
     const filtered = projects.filter(p => p.ownerId !== userId);
-    console.log('[filtered projects]', filtered);
+    console.log('필터링(내 프로젝트 제외):', filtered);
 
-    renderProjects(filtered);      // 프론트엔드/백엔드/디자인/기획
-    renderAllProjects(projects);   // 전체 탭
-  } catch (err) {
-    console.error('[fetchProjects] 에러:', err);
+    renderProjects(filtered);     // 역할별
+    renderAllProjects(projects);  // 전체 탭
+  } catch (error) {
+    console.error('[fetchProjects] 에러:', error);
   }
 }
 
 // 2) renderAllProjects
 function renderAllProjects(projects) {
-  const allProjectsContainer = document.getElementById('all-projects');
-  if (!allProjectsContainer) return;
+  const container = document.getElementById('all-projects');
+  if (!container) return;
+  container.innerHTML = '';
 
-  allProjectsContainer.innerHTML = '';
+  // ownerId != userId & maxTeamSize>0
   const filtered = projects.filter(
     p => p.ownerId !== userId && p.maxTeamSize > 0
   );
-  filtered.forEach((project) => {
-    const remainingSlots = Math.max(0, project.maxTeamSize - (project.participants?.length || 0));
-    const rolesStr = project.roles.map(r => roleDisplayNames[r] || r).join(', ');
-
+  filtered.forEach((p) => {
     const card = document.createElement('div');
     card.className = 'project-card';
+    // 최소 정보만 표시
     card.innerHTML = `
-      <h5>${project.projectName}</h5>
-      <small>프로젝트 유형: ${project.projectType}</small><br/>
-      <small>모집 인원: ${remainingSlots}/${project.maxTeamSize}</small><br/>
-      <small>지원 유형: ${rolesStr}</small>
+      <h5>${p.projectName || 'Unknown Project'}</h5>
+      <button class="btn btn-sm btn-outline-primary">자세히 보기</button>
     `;
-    card.addEventListener('click', () => openProjectPopup(project));
-    allProjectsContainer.appendChild(card);
+    card.addEventListener('click', () => openProjectPopup(p));
+    container.appendChild(card);
   });
 }
 
 // 3) renderProjects (역할별 탭)
 function renderProjects(projects) {
   console.log('[renderProjects]', projects);
-  const frontendContainer = document.getElementById('frontend-projects');
-  const backendContainer = document.getElementById('backend-projects');
-  const designContainer = document.getElementById('design-projects');
-  const planningContainer = document.getElementById('planning-projects');
-  if (!frontendContainer || !backendContainer || !designContainer || !planningContainer) {
-    console.warn('역할별 컨테이너가 없습니다.');
+  const fe = document.getElementById('frontend-projects');
+  const be = document.getElementById('backend-projects');
+  const ds = document.getElementById('design-projects');
+  const pm = document.getElementById('planning-projects');
+  if (!fe || !be || !ds || !pm) {
+    console.warn('역할별 컨테이너가 없음');
     return;
   }
-  // 초기화
-  frontendContainer.innerHTML = '';
-  backendContainer.innerHTML = '';
-  designContainer.innerHTML = '';
-  planningContainer.innerHTML = '';
+  fe.innerHTML = ''; be.innerHTML = '';
+  ds.innerHTML = ''; pm.innerHTML = '';
 
   projects.forEach((proj) => {
-    const remainingSlots = Math.max(0, proj.maxTeamSize - (proj.participants?.length || 0));
-    const isParticipated = proj.isParticipated;
-    const rolesStr = proj.roles.map(r => roleDisplayNames[r] || r).join(', ');
+    const slots = Math.max(0, proj.maxTeamSize - (proj.participants?.length||0));
+    const rolesStr = proj.roles.map(r => roleDisplayNames[r]||r).join(', ');
 
+    // 카드 (목록)
     const card = document.createElement('div');
     card.className = 'project-card';
+    // 최소 정보만 표기
     card.innerHTML = `
-      <h5>${proj.projectName}</h5>
-      <small>프로젝트 유형: ${proj.projectType}</small><br/>
-      <small>모집 인원: ${remainingSlots}/${proj.maxTeamSize}</small>
-      ${isParticipated ? '<small> (이미 참여)</small>' : ''}
-      <br/>
-      <small>지원 유형: ${rolesStr}</small>
+      <h5>${proj.projectName || 'Unknown Project'}</h5>
+      <button class="btn btn-sm btn-outline-primary">자세히 보기</button>
     `;
     card.addEventListener('click', () => openProjectPopup(proj));
 
-    // 기획(PM)
-    if (proj.roles.includes('pm') && remainingSlots > 0) {
+    // 역할별 배치
+    if (proj.roles.includes('pm') && slots > 0) {
       const clonePM = card.cloneNode(true);
       clonePM.addEventListener('click', () => openProjectPopup(proj));
-      planningContainer.appendChild(clonePM);
+      pm.appendChild(clonePM);
     }
-    // 프론트
-    if (proj.roles.includes('frontend') && remainingSlots > 0) {
+    if (proj.roles.includes('frontend') && slots > 0) {
       const cloneFE = card.cloneNode(true);
       cloneFE.addEventListener('click', () => openProjectPopup(proj));
-      frontendContainer.appendChild(cloneFE);
+      fe.appendChild(cloneFE);
     }
-    // 백엔드
-    if (proj.roles.includes('backend') && remainingSlots > 0) {
+    if (proj.roles.includes('backend') && slots > 0) {
       const cloneBE = card.cloneNode(true);
       cloneBE.addEventListener('click', () => openProjectPopup(proj));
-      backendContainer.appendChild(cloneBE);
+      be.appendChild(cloneBE);
     }
-    // 디자인
-    if (proj.roles.includes('design') && remainingSlots > 0) {
+    if (proj.roles.includes('design') && slots > 0) {
       const cloneDS = card.cloneNode(true);
       cloneDS.addEventListener('click', () => openProjectPopup(proj));
-      designContainer.appendChild(cloneDS);
+      ds.appendChild(cloneDS);
     }
   });
 }
 
-// =====================================
 // E. Step Functions 매칭 로직
-// =====================================
 async function startStepFunctions(userId) {
   const statusMessage = document.getElementById('statusMessage');
   try {
+    const idToken = localStorage.getItem('idToken') || '';
     console.log('[startStepFunctions] userId:', userId);
-    const idToken = localStorage.getItem('idToken');
-    if (!idToken) console.warn('No idToken in localStorage!');
 
-    const response = await fetch(STEP_FUNCTIONS_API_URL, {
+    const resp = await fetch(STEP_FUNCTIONS_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -209,30 +185,28 @@ async function startStepFunctions(userId) {
       },
       body: JSON.stringify({ userId })
     });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('[startStepFunctions] errText:', errText);
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.error('startStepFunctions Error:', errText);
+      throw new Error(`HTTP error! status: ${resp.status}`);
     }
-
-    const data = await response.json();
+    const data = await resp.json();
     console.log('[startStepFunctions] success:', data);
     window.currentExecutionArn = data.executionArn;
 
-    statusMessage.innerHTML = '매칭이 시작되었습니다. 약 3~4분 후 "결과 가져오기" 버튼을 눌러 주세요.';
-  } catch (error) {
-    console.error('[startStepFunctions] error:', error);
-    alert(`매칭 시작 오류: ${error.message}`);
+    statusMessage.innerHTML = '매칭이 시작되었습니다. 약 3~4분 후 "결과 가져오기" 버튼을 눌러 결과를 조회하세요.';
+  } catch (err) {
+    console.error('[startStepFunctions] error:', err);
+    alert(`매칭 시작 오류: ${err.message}`);
     statusMessage.innerHTML = '<p>매칭 시작 중 오류</p>';
   }
 }
 
-async function fetchStepFunctionsResult(executionArn) {
+async function fetchStepFunctionsResult(execArn) {
   const statusMessage = document.getElementById('statusMessage');
   try {
-    console.log('[fetchStepFunctionsResult] ARN:', executionArn);
-    const idToken = localStorage.getItem('idToken');
+    console.log('[fetchStepFunctionsResult] ARN:', execArn);
+    const idToken = localStorage.getItem('idToken') || '';
     const userId = getLoggedInUserId();
     if (!userId) {
       alert('로그인이 필요합니다.');
@@ -241,31 +215,30 @@ async function fetchStepFunctionsResult(executionArn) {
     }
 
     const url = `${TOP4_MATCHING_API_URL}?userId=${encodeURIComponent(userId)}`;
-    const response = await fetch(url, {
+    const resp = await fetch(url, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${idToken}`
       }
     });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('[fetchStepFunctionsResult] errText:', errText);
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.error('[fetchStepFunctionsResult] error:', errText);
+      throw new Error(`HTTP error! status: ${resp.status}`);
     }
 
-    const result = await response.json();
+    const result = await resp.json();
     console.log('[fetchStepFunctionsResult] result:', result);
 
     if (Array.isArray(result.top_4)) {
       renderMatchingProjects(result.top_4);
       statusMessage.innerHTML = '매칭 결과가 아래에 표시되었습니다.';
     } else {
-      statusMessage.innerHTML = '매칭 결과가 아직 준비 안됨. 잠시 후 다시 시도.';
+      statusMessage.innerHTML = '매칭 결과가 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.';
     }
-  } catch (error) {
-    console.error('[fetchStepFunctionsResult] error:', error);
-    alert(`결과 조회 오류: ${error.message}`);
+  } catch (err) {
+    console.error('[fetchStepFunctionsResult] error:', err);
+    alert(`결과 조회 오류: ${err.message}`);
     statusMessage.innerHTML = '<p>결과 조회 중 오류</p>';
   }
 }
@@ -278,23 +251,22 @@ function renderMatchingProjects(matches) {
     projectListDiv.innerHTML = '<p>조건에 맞는 매칭 결과가 없습니다.</p>';
     return;
   }
+  window.matchedProjects = matches;
 
-  window.matchedProjects = matches; // 팝업에서 사용
   let html = '<div class="row">';
   matches.forEach(m => {
-    const projectName = m.projectName || 'Unknown Project';
-    const similarityScore = m.SimilarityScore || 0;
-    const projectId = m.ProjectID || 'UnknownID';
+    const projName = m.projectName || 'Unknown Project';
+    const simScore = m.SimilarityScore || 0;
+    const pid = m.ProjectID || 'UnknownID';
 
+    // 카드엔 최소 정보만
     html += `
       <div class="col-md-3" style="margin-bottom:20px;">
-        <div class="card">
+        <div class="card shadow-sm">
           <div class="card-body">
-            <h5>${projectName}</h5>
-            <p>유사도 점수: ${similarityScore.toFixed(2)}</p>
-            <button class="btn btn-info" onclick="openProjectPopupByMatching('${projectId}')">
-              자세히 보기
-            </button>
+            <h5>${projName}</h5>
+            <p>유사도 점수: ${simScore.toFixed(2)}</p>
+            <button class="btn btn-info" onclick="openProjectPopupByMatching('${pid}')">자세히 보기</button>
           </div>
         </div>
       </div>
@@ -304,13 +276,13 @@ function renderMatchingProjects(matches) {
   projectListDiv.innerHTML = html;
 }
 
-// “자세히 보기” → 팝업
+// “자세히 보기” → popup
 function openProjectPopupByMatching(projectId) {
   if (!window.matchedProjects) {
     alert('매칭된 프로젝트 정보가 없습니다.');
     return;
   }
-  const project = window.matchedProjects.find(p => p.ProjectID === projectId);
+  const project = window.matchedProjects.find(x => x.ProjectID === projectId);
   if (!project) {
     alert('해당 프로젝트 정보를 찾을 수 없습니다.');
     return;
@@ -318,11 +290,7 @@ function openProjectPopupByMatching(projectId) {
   openProjectPopup(project);
 }
 
-// =====================================
-// F. 팝업(모달) 로직 (공용)
-// =====================================
-
-// DOM
+// F. 팝업(모달) 공용 로직
 const popup = document.getElementById('project-popup');
 const closePopup = document.getElementById('close-popup');
 const popupTitle = document.getElementById('popup-title');
@@ -341,7 +309,6 @@ const submitApplicationButton = document.getElementById('submit-application');
 
 let currentSelectedProject = null;
 
-// 공용 팝업 열기
 function openProjectPopup(project) {
   if (!getLoggedInUserId()) {
     alert('로그인이 필요합니다.');
@@ -350,6 +317,7 @@ function openProjectPopup(project) {
   }
   currentSelectedProject = project;
 
+  // 팝업에 상세정보 세팅
   popupTitle.textContent = project.projectName || '프로젝트 이름 없음';
   popupDescription.textContent = project.projectDescription || '설명 없음';
   popupTechStack.textContent = Array.isArray(project.techStack)
@@ -361,7 +329,7 @@ function openProjectPopup(project) {
   popupDuration.textContent = (project.projectDuration || 0) + '일';
   popupOwnerName.textContent = project.ownerName || '알 수 없음';
 
-  // 역할 버튼
+  // 역할 버튼 생성
   applicationRoles.innerHTML = '';
   if (project.roles && Array.isArray(project.roles)) {
     project.roles.forEach(role => {
@@ -383,6 +351,7 @@ function openProjectPopup(project) {
       applicationRoles.appendChild(roleBtn);
     });
   }
+
   // 참여 여부
   applyButton.disabled = project.isParticipated;
 
@@ -396,32 +365,32 @@ function closeProjectPopup() {
   resetApplicationForm();
 }
 
-// 지원하기 버튼
+// "지원하기" 버튼
 if (applyButton) {
   applyButton.addEventListener('click', () => {
     applicationSection.style.display = 'block';
   });
 }
 
-// 지원 제출
+// "지원 제출" 버튼
 if (submitApplicationButton) {
   submitApplicationButton.addEventListener('click', () => {
     const activeBtn = document.querySelector('.role-button.active');
     const selectedRole = activeBtn ? activeBtn.dataset.role : null;
-    const note = applicationNote.value.trim();
+    const noteValue = applicationNote.value.trim();
 
-    if (!currentSelectedProject || !selectedRole || !note) {
-      alert('지원 역할과 내용을 모두 작성하세요.');
+    if (!currentSelectedProject || !selectedRole || !noteValue) {
+      alert('지원할 역할과 내용을 모두 입력해주세요.');
       return;
     }
 
-    // (예) WebSocket 전송 or alert
-    alert(`프로젝트(${currentSelectedProject.projectName})에 [${selectedRole}]로 지원!\n내용: ${note}`);
+    // 여기에서 실제 제출 로직 (WebSocket or API)
+    alert(`프로젝트("${currentSelectedProject.projectName}")에 역할(${selectedRole})로 지원!\n내용: ${noteValue}`);
     closeProjectPopup();
   });
 }
 
-// 팝업 X 버튼
+// 팝업 x버튼
 if (closePopup) {
   closePopup.addEventListener('click', () => {
     closeProjectPopup();
@@ -435,13 +404,11 @@ function resetApplicationForm() {
   document.querySelectorAll('.role-button').forEach(b => b.classList.remove('active'));
 }
 
-// =====================================
-// G. DOMContentLoaded 초기화
-// =====================================
+// G. DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
-  // WebSocket 연결 원하면
+  // WebSocket 연결을 원하면
   // connectWebSocket();
 
-  // 프로젝트 목록 fetch (왼쪽 코드)
+  // 왼쪽 코드: 전체 프로젝트 fetch
   fetchProjects();
 });
