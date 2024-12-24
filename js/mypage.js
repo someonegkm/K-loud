@@ -8,6 +8,8 @@ let currentSelectedProjectId = null; // 현재 상세정보 조회중인 프로�
 const STEP_FUNCTIONS_START_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/startProjectMatching';
 // Top4 Matching API (방장 관점)
 const TOP4_MATCHING_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/top4project';
+// 기존 "내 프로젝트" API
+const USER_PROJECTS_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/createproject';
 
 // 기타 API들 (프로필, removeParticipant 등)도 원래 코드 유지
 
@@ -419,39 +421,42 @@ async function fetchMyProjects(userId) {
 }
 
 function renderMyProjects(projects) {
-    const container = document.getElementById('participated-projects-container');
+  const container = document.getElementById('participated-projects-container');
 
-    if (!container) {
-        console.error("참여한 프로젝트 컨테이너가 존재하지 않습니다.");
-        return;
-    }
+  if (!container) {
+      console.error("참여한 프로젝트 컨테이너가 존재하지 않습니다.");
+      return;
+  }
 
-    container.innerHTML = ''; // 기존 데이터 초기화
+  container.innerHTML = ''; // 기존 데이터 초기화
 
-    if (projects.length === 0) {
-        container.innerHTML = '<p>참여한 프로젝트가 없습니다.</p>';
-        return;
-    }
+  if (projects.length === 0) {
+      container.innerHTML = '<p>참여한 프로젝트가 없습니다.</p>';
+      return;
+  }
 
-    projects.forEach(project => {
-        console.log('프로젝트 데이터:', project); // 각 프로젝트 데이터 확인
+  projects.forEach(project => {
+      console.log('프로젝트 데이터:', project); // 각 프로젝트 데이터 확인
 
-        const projectItem = document.createElement('div');
-        projectItem.className = 'project-item';
-        projectItem.style.border = '1px solid #ccc';
-        projectItem.style.padding = '10px';
-        projectItem.style.marginBottom = '10px';
+      const projectItem = document.createElement('div');
+      projectItem.className = 'project-item';
+      projectItem.style.border = '1px solid #ccc';
+      projectItem.style.padding = '10px';
+      projectItem.style.marginBottom = '10px';
 
-        // projectName이 없으면 기본값으로 처리
-        projectItem.innerHTML = `
-            <h4>${project.projectName || '프로젝트 이름 없음'}</h4>
-            <p><strong>방장:</strong> ${project.projectOwnerId}</p>
-            <p><strong>참여 시간:</strong> ${new Date(Number(project.timestamp)).toLocaleString()}</p>
-        `;
+      // 방장 닉네임이 없는 경우 기본값 표시
+      const ownerName = project.ownerName || '알 수 없음';
 
-        container.appendChild(projectItem);
-    });
+      projectItem.innerHTML = `
+          <h4>${project.projectName || '프로젝트 이름 없음'}</h4>
+          <p><strong>방장:</strong> ${ownerName}</p> <!-- 방장 닉네임 표시 -->
+          <p><strong>참여 시간:</strong> ${new Date(Number(project.timestamp)).toLocaleString()}</p>
+      `;
+
+      container.appendChild(projectItem);
+  });
 }
+
 
 // 10) 회원정보 폼 제출
 function attachFormSubmitEvent(){
