@@ -211,6 +211,7 @@ function openProjectPopup(project) {
     document.getElementById('popup-recruitment').textContent = `${project.maxTeamSize || 0}명`;
     document.getElementById('popup-duration').textContent = `${project.projectDuration || 0}일`;
     document.getElementById('popup-description').textContent = project.projectDescription || '내용이 없습니다.';
+    document.getElementById('popup-owner-name').textContent = project.ownerName || '알 수 없음'; // 방장 닉네임 추가
 
     // 역할 버튼 생성
     const applicationRoles = document.getElementById('application-roles');
@@ -246,6 +247,7 @@ function openProjectPopup(project) {
     // 팝업 표시
     document.getElementById('project-popup').style.display = 'block';
 }
+
 
 
 // 지원 제출 버튼 클릭 이벤트
