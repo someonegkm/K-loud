@@ -17,6 +17,54 @@
   <!-- Custom Styles for This Template -->
   <link href="css/style.css" rel="stylesheet" />
   <link href="css/responsive.css" rel="stylesheet" />
+
+  <!-- 팝업(모달) 관련 간단한 스타일 예시 -->
+  <style>
+    /* 팝업 배경 */
+    #project-popup {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    /* 팝업 내용박스 */
+    #project-popup .popup-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      width: 70%;
+      max-width: 600px;
+      border-radius: 5px;
+    }
+    .popup-close {
+      float: right;
+      font-size: 25px;
+      cursor: pointer;
+    }
+    .role-button {
+      margin: 5px;
+    }
+    .role-button.active {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .role-button.disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .project-card {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+  </style>
+
 </head>
 
 <body class="sub_page">
@@ -40,10 +88,14 @@
               <li class="nav-item"><a class="nav-link" href="alarm.html">알림</a></li>
               <li class="nav-item"><a class="nav-link" href="mypage.html">마이페이지</a></li>
               <li class="nav-item" id="login-logout-item">
-                <a class="nav-link" href="login.html" id="login-logout-link"><i class="fa fa-user"></i> 로그인</a>
+                <a class="nav-link" href="login.html" id="login-logout-link">
+                  <i class="fa fa-user"></i> 로그인
+                </a>
               </li>
               <form class="form-inline">
-                <button class="btn my-2 my-sm-0 nav_search-btn" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+                <button class="btn my-2 my-sm-0 nav_search-btn" type="submit">
+                  <i class="fa fa-search" aria-hidden="true"></i>
+                </button>
               </form>
             </ul>
           </div>
@@ -75,6 +127,35 @@
     </div>
   </div>
 
+  <!-- 팝업 구조 (추가됨) -->
+  <div id="project-popup">
+    <div class="popup-content">
+      <span id="close-popup" class="popup-close">&times;</span>
+      <h2 id="popup-title"></h2>
+
+      <p><strong>프로젝트 유형:</strong> <span id="popup-type"></span></p>
+      <p><strong>기술 스택:</strong> <span id="popup-techstack"></span></p>
+      <p><strong>모집 인원:</strong> <span id="popup-recruitment"></span></p>
+      <p><strong>프로젝트 기간(일):</strong> <span id="popup-duration"></span></p>
+
+      <p><strong>설명:</strong></p>
+      <p id="popup-description"></p>
+
+      <!-- 지원하기 버튼 -->
+      <button id="apply-button">지원하기</button>
+
+      <!-- 실제 지원 영역 (처음에는 숨김) -->
+      <div id="application-section" style="display:none; margin-top:20px;">
+        <h5>지원할 역할 선택</h5>
+        <div id="application-roles"></div>
+        <textarea id="application-note" rows="4" cols="50" placeholder="하고 싶은 말 (지원 동기 등)"></textarea>
+        <br /><br />
+        <button id="submit-application" class="btn btn-success">지원 제출</button>
+      </div>
+    </div>
+  </div>
+  <!-- // 팝업 구조 끝 -->
+
   <section class="info_section layout_padding2">
     <div class="container">
       <div class="row">
@@ -91,10 +172,13 @@
 
   <div id="notification-container" style="position: fixed; bottom: 20px; right:20px; z-index:9999;"></div>
 
+  <!-- Amazon Cognito JS -->
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
   <script src="js/cognito.js"></script>
   <script src="js/websocket.js"></script>
+  <!-- 수정된 project_matching.js (전체) -->
   <script src="js/project_matching.js"></script>
+
   <script>
     window.onload = function() {
       console.log('페이지 로드');
@@ -127,7 +211,7 @@
   <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
   <!-- Bootstrap JS -->
   <script type="text/javascript" src="js/bootstrap.js"></script>
-  <!-- custom.js (carousel 관련 에러 발생 시 제거하거나 수정 필요) -->
+  <!-- custom.js -->
   <script type="text/javascript" src="js/custom.js"></script>
 
 </body>
