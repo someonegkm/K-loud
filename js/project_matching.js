@@ -1,25 +1,26 @@
 //----------------------------------------------------
-// project_matching.js (최종 통합본)
+// project_matching.js (최종)
 //----------------------------------------------------
 
-// A. Step Functions 매칭 URL
+// Step Functions API
 const STEP_FUNCTIONS_API_URL = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/StepFunctionsTriggerAPI';
 const TOP4_MATCHING_API_URL = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/Top4MatchingAPI';
 
-// B. Cognito 관련
+// 프로젝트 목록 API
+const API_URL = 'https://d2miwwhvzmngyp.cloudfront.net/prod/getproject';
+
+// Cognito 세션
 function getLoggedInUserId() {
   const cognitoUser = userPool.getCurrentUser();
   return cognitoUser ? cognitoUser.getUsername() : null;
 }
-
 function updateNavBar() {
   const cognitoUser = userPool.getCurrentUser();
   const loginLogoutLink = document.getElementById('login-logout-link');
-
   if (cognitoUser) {
     loginLogoutLink.textContent = '로그아웃';
     loginLogoutLink.href = '#';
-    loginLogoutLink.onclick = function() {
+    loginLogoutLink.onclick = function () {
       cognitoUser.signOut();
       window.location.href = 'login.html';
     };
@@ -30,17 +31,17 @@ function updateNavBar() {
   }
 }
 
-// C. WebSocket (선택)
+// WebSocket (선택)
 let ws = null;
 function connectWebSocket() {
   const cognitoUser = userPool.getCurrentUser();
   if (!cognitoUser) {
-    console.error('로그인되지 않음 → WebSocket 연결 불가');
+    console.error('로그인 안됨. WebSocket 연결 불가');
     return;
   }
   cognitoUser.getSession((err, session) => {
     if (err) {
-      console.error('세션 오류:', err);
+      console.error('세션 에러:', err);
       return;
     }
     const userId = cognitoUser.getUsername();
@@ -48,18 +49,18 @@ function connectWebSocket() {
     ws = new WebSocket(wsUrl);
 
     ws.onopen = () => console.log('WebSocket 연결 성공');
-    ws.onmessage = (e) => alert('새 알림: ' + e.data);
+    ws.onmessage = (evt) => alert('새 알림: ' + evt.data);
     ws.onclose = () => console.log('WebSocket 연결 종료');
     ws.onerror = (e) => console.error('WebSocket 에러:', e);
   });
 }
 
-// D. 전체 프로젝트 목록 API
-const API_URL = 'https://d2miwwhvzmngyp.cloudfront.net/prod/getproject';
+// ------------------
+// A. 프로젝트 목록
+// ------------------
 let userName = null;
 let userId = null;
 
-// 역할 표시
 const roleDisplayNames = {
   frontend: "프론트엔드",
   backend: "백엔드",
@@ -67,12 +68,11 @@ const roleDisplayNames = {
   pm: "기획"
 };
 
-// 1) fetchProjects()
 async function fetchProjects() {
   console.log('[fetchProjects] 호출');
   userId = getLoggedInUserId(); 
   if (!userId) {
-    console.log('로그인 안 됨 → fetchProjects 생략');
+    console.log('로그인 안되어 fetchProjects 중단');
     return;
   }
   try {
@@ -84,31 +84,28 @@ async function fetchProjects() {
     const projects = await resp.json();
     console.log('[fetchProjects] 전체 프로젝트:', projects);
 
-    // 내가 만든 프로젝트 제외
+    // 내 소유 프로젝트 제외
     const filtered = projects.filter(p => p.ownerId !== userId);
-    console.log('필터링(내 프로젝트 제외):', filtered);
+    console.log('[filtered]', filtered);
 
-    renderProjects(filtered);     // 역할별
-    renderAllProjects(projects);  // 전체 탭
+    // 역할별 + 전체
+    renderProjects(filtered);
+    renderAllProjects(projects);
   } catch (error) {
     console.error('[fetchProjects] 에러:', error);
   }
 }
 
-// 2) renderAllProjects
 function renderAllProjects(projects) {
   const container = document.getElementById('all-projects');
   if (!container) return;
   container.innerHTML = '';
 
   // ownerId != userId & maxTeamSize>0
-  const filtered = projects.filter(
-    p => p.ownerId !== userId && p.maxTeamSize > 0
-  );
+  const filtered = projects.filter(p => p.ownerId !== userId && p.maxTeamSize > 0);
   filtered.forEach((p) => {
     const card = document.createElement('div');
     card.className = 'project-card';
-    // 최소 정보만 표시
     card.innerHTML = `
       <h5>${p.projectName || 'Unknown Project'}</h5>
       <button class="btn btn-sm btn-outline-primary">자세히 보기</button>
@@ -118,51 +115,44 @@ function renderAllProjects(projects) {
   });
 }
 
-// 3) renderProjects (역할별 탭)
 function renderProjects(projects) {
-  console.log('[renderProjects]', projects);
   const fe = document.getElementById('frontend-projects');
   const be = document.getElementById('backend-projects');
   const ds = document.getElementById('design-projects');
   const pm = document.getElementById('planning-projects');
   if (!fe || !be || !ds || !pm) {
-    console.warn('역할별 컨테이너가 없음');
+    console.warn('역할별 컨테이너 없음');
     return;
   }
   fe.innerHTML = ''; be.innerHTML = '';
   ds.innerHTML = ''; pm.innerHTML = '';
 
-  projects.forEach((proj) => {
+  projects.forEach(proj => {
     const slots = Math.max(0, proj.maxTeamSize - (proj.participants?.length||0));
-    const rolesStr = proj.roles.map(r => roleDisplayNames[r]||r).join(', ');
-
-    // 카드 (목록)
     const card = document.createElement('div');
     card.className = 'project-card';
-    // 최소 정보만 표기
     card.innerHTML = `
       <h5>${proj.projectName || 'Unknown Project'}</h5>
       <button class="btn btn-sm btn-outline-primary">자세히 보기</button>
     `;
     card.addEventListener('click', () => openProjectPopup(proj));
 
-    // 역할별 배치
-    if (proj.roles.includes('pm') && slots > 0) {
+    if (proj.roles.includes('pm') && slots>0) {
       const clonePM = card.cloneNode(true);
       clonePM.addEventListener('click', () => openProjectPopup(proj));
       pm.appendChild(clonePM);
     }
-    if (proj.roles.includes('frontend') && slots > 0) {
+    if (proj.roles.includes('frontend') && slots>0) {
       const cloneFE = card.cloneNode(true);
       cloneFE.addEventListener('click', () => openProjectPopup(proj));
       fe.appendChild(cloneFE);
     }
-    if (proj.roles.includes('backend') && slots > 0) {
+    if (proj.roles.includes('backend') && slots>0) {
       const cloneBE = card.cloneNode(true);
       cloneBE.addEventListener('click', () => openProjectPopup(proj));
       be.appendChild(cloneBE);
     }
-    if (proj.roles.includes('design') && slots > 0) {
+    if (proj.roles.includes('design') && slots>0) {
       const cloneDS = card.cloneNode(true);
       cloneDS.addEventListener('click', () => openProjectPopup(proj));
       ds.appendChild(cloneDS);
@@ -170,7 +160,9 @@ function renderProjects(projects) {
   });
 }
 
-// E. Step Functions 매칭 로직
+// ------------------
+// B. Step Functions 매칭
+// ------------------
 async function startStepFunctions(userId) {
   const statusMessage = document.getElementById('statusMessage');
   try {
@@ -217,16 +209,13 @@ async function fetchStepFunctionsResult(execArn) {
     const url = `${TOP4_MATCHING_API_URL}?userId=${encodeURIComponent(userId)}`;
     const resp = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${idToken}`
-      }
+      headers: { 'Authorization': `Bearer ${idToken}` }
     });
     if (!resp.ok) {
       const errText = await resp.text();
       console.error('[fetchStepFunctionsResult] error:', errText);
       throw new Error(`HTTP error! status: ${resp.status}`);
     }
-
     const result = await resp.json();
     console.log('[fetchStepFunctionsResult] result:', result);
 
@@ -247,7 +236,7 @@ function renderMatchingProjects(matches) {
   const projectListDiv = document.getElementById('project-list');
   projectListDiv.innerHTML = '';
 
-  if (!Array.isArray(matches) || matches.length === 0) {
+  if (!Array.isArray(matches) || matches.length===0) {
     projectListDiv.innerHTML = '<p>조건에 맞는 매칭 결과가 없습니다.</p>';
     return;
   }
@@ -259,14 +248,15 @@ function renderMatchingProjects(matches) {
     const simScore = m.SimilarityScore || 0;
     const pid = m.ProjectID || 'UnknownID';
 
-    // 카드엔 최소 정보만
     html += `
       <div class="col-md-3" style="margin-bottom:20px;">
         <div class="card shadow-sm">
           <div class="card-body">
             <h5>${projName}</h5>
             <p>유사도 점수: ${simScore.toFixed(2)}</p>
-            <button class="btn btn-info" onclick="openProjectPopupByMatching('${pid}')">자세히 보기</button>
+            <button class="btn btn-info" onclick="openProjectPopupByMatching('${pid}')">
+              자세히 보기
+            </button>
           </div>
         </div>
       </div>
@@ -276,13 +266,13 @@ function renderMatchingProjects(matches) {
   projectListDiv.innerHTML = html;
 }
 
-// “자세히 보기” → popup
+// “자세히 보기” → matchedProjects → popup
 function openProjectPopupByMatching(projectId) {
   if (!window.matchedProjects) {
     alert('매칭된 프로젝트 정보가 없습니다.');
     return;
   }
-  const project = window.matchedProjects.find(x => x.ProjectID === projectId);
+  const project = window.matchedProjects.find(x => x.ProjectID===projectId);
   if (!project) {
     alert('해당 프로젝트 정보를 찾을 수 없습니다.');
     return;
@@ -290,7 +280,9 @@ function openProjectPopupByMatching(projectId) {
   openProjectPopup(project);
 }
 
-// F. 팝업(모달) 공용 로직
+// ------------------
+// C. 팝업(모달) 로직
+// ------------------
 const popup = document.getElementById('project-popup');
 const closePopup = document.getElementById('close-popup');
 const popupTitle = document.getElementById('popup-title');
@@ -317,7 +309,7 @@ function openProjectPopup(project) {
   }
   currentSelectedProject = project;
 
-  // 팝업에 상세정보 세팅
+  // 팝업에 상세정보
   popupTitle.textContent = project.projectName || '프로젝트 이름 없음';
   popupDescription.textContent = project.projectDescription || '설명 없음';
   popupTechStack.textContent = Array.isArray(project.techStack)
@@ -325,18 +317,18 @@ function openProjectPopup(project) {
     : (project.techStack || '기술 스택 없음');
   popupType.textContent = project.projectType || '유형 없음';
   popupCreated.textContent = project.createdAt || '-';
-  popupRecruitment.textContent = (project.maxTeamSize || 0) + '명';
-  popupDuration.textContent = (project.projectDuration || 0) + '일';
+  popupRecruitment.textContent = (project.maxTeamSize||0)+'명';
+  popupDuration.textContent = (project.projectDuration||0)+'일';
   popupOwnerName.textContent = project.ownerName || '알 수 없음';
 
-  // 역할 버튼 생성
+  // 역할 버튼
   applicationRoles.innerHTML = '';
   if (project.roles && Array.isArray(project.roles)) {
     project.roles.forEach(role => {
-      const isDisabled = (project.disabledRoles || []).includes(role);
+      const isDisabled = (project.disabledRoles||[]).includes(role);
       const roleBtn = document.createElement('button');
-      roleBtn.className = `role-button ${isDisabled ? 'disabled' : ''}`;
-      roleBtn.textContent = roleDisplayNames[role] || role;
+      roleBtn.className = `role-button ${isDisabled?'disabled':''}`;
+      roleBtn.textContent = roleDisplayNames[role]||role;
       roleBtn.dataset.role = role;
 
       if (isDisabled) {
@@ -344,7 +336,7 @@ function openProjectPopup(project) {
         roleBtn.title = '이 역할은 지원할 수 없습니다.';
       } else {
         roleBtn.addEventListener('click', () => {
-          document.querySelectorAll('.role-button').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.role-button').forEach(b=>b.classList.remove('active'));
           roleBtn.classList.add('active');
         });
       }
@@ -352,27 +344,24 @@ function openProjectPopup(project) {
     });
   }
 
-  // 참여 여부
   applyButton.disabled = project.isParticipated;
-
   resetApplicationForm();
   popup.style.display = 'block';
 }
 
-// 팝업 닫기
 function closeProjectPopup() {
   popup.style.display = 'none';
   resetApplicationForm();
 }
 
-// "지원하기" 버튼
+// “지원하기” 버튼
 if (applyButton) {
   applyButton.addEventListener('click', () => {
     applicationSection.style.display = 'block';
   });
 }
 
-// "지원 제출" 버튼
+// “지원 제출” 버튼
 if (submitApplicationButton) {
   submitApplicationButton.addEventListener('click', () => {
     const activeBtn = document.querySelector('.role-button.active');
@@ -380,17 +369,17 @@ if (submitApplicationButton) {
     const noteValue = applicationNote.value.trim();
 
     if (!currentSelectedProject || !selectedRole || !noteValue) {
-      alert('지원할 역할과 내용을 모두 입력해주세요.');
+      alert('지원할 역할과 내용 모두 입력해주세요.');
       return;
     }
 
-    // 여기에서 실제 제출 로직 (WebSocket or API)
-    alert(`프로젝트("${currentSelectedProject.projectName}")에 역할(${selectedRole})로 지원!\n내용: ${noteValue}`);
+    // 실제 제출 로직(WebSocket / API)
+    alert(`프로젝트(${currentSelectedProject.projectName})에 [${selectedRole}]로 지원!\n내용: ${noteValue}`);
     closeProjectPopup();
   });
 }
 
-// 팝업 x버튼
+// 닫기 버튼
 if (closePopup) {
   closePopup.addEventListener('click', () => {
     closeProjectPopup();
@@ -401,14 +390,14 @@ if (closePopup) {
 function resetApplicationForm() {
   applicationSection.style.display = 'none';
   applicationNote.value = '';
-  document.querySelectorAll('.role-button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.role-button').forEach(b=>b.classList.remove('active'));
 }
 
-// G. DOMContentLoaded
+// D. 페이지 로드시 실행
 document.addEventListener('DOMContentLoaded', () => {
-  // WebSocket 연결을 원하면
+  // 필요 시 WebSocket
   // connectWebSocket();
 
-  // 왼쪽 코드: 전체 프로젝트 fetch
+  // 전체 프로젝트 불러오기
   fetchProjects();
 });
