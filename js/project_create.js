@@ -85,28 +85,48 @@ document.getElementById('saveProjectButton').addEventListener('click', async fun
         return;
     }
 
-    const now = new Date();
+    // 유저 닉네임 가져오기
+    const cognitoUser = userPool.getCurrentUser();
+    let ownerName = '';
+    if (cognitoUser) {
+        ownerName = await new Promise((resolve) => {
+            cognitoUser.getSession((err, session) => {
+                if (!err && session.isValid()) {
+                    const idToken = session.getIdToken().getJwtToken();
+                    const payload = JSON.parse(atob(idToken.split('.')[1]));
+                    const name = payload.name || '알 수 없음';
+                    resolve(name);
+                } else {
+                    resolve('알 수 없음');
+                }
+            });
+        });
+    }
+
+    // 프로젝트 데이터 생성
     const projectData = {
         projectId: generateUUID(),
         projectName,
         projectDescription,
-        ownerId, // 자동 설정된 ownerId 사용
+        ownerId,
+        ownerName: decodeURIComponent(escape(ownerName)), // 한글 UTF-8 처리
         techStack: techStack.split(',').map(s => s.trim()),
         projectType,
         maxTeamSize,
         projectDuration,
         roles,
-        createdAt: formatDate(now),
+        createdAt: formatDate(new Date()),
     };
 
     console.log('프로젝트 데이터:', JSON.stringify(projectData, null, 2));
 
+    // API 호출
     try {
         const response = await fetch('https://d2miwwhvzmngyp.cloudfront.net/prod/createproject', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('idToken')}`, // Cognito 인증 토큰 추가
+                'Content-Type': 'application/json; charset=UTF-8',
+                Authorization: `Bearer ${localStorage.getItem('idToken')}`,
             },
             body: JSON.stringify(projectData),
         });
