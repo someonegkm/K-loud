@@ -8,8 +8,6 @@ let currentSelectedProjectId = null; // 현재 상세정보 조회중인 프로�
 const STEP_FUNCTIONS_START_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/startProjectMatching';
 // Top4 Matching API (방장 관점)
 const TOP4_MATCHING_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/top4project';
-// 기존 "내 프로젝트" API
-const USER_PROJECTS_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/createproject';
 
 // 기타 API들 (프로필, removeParticipant 등)도 원래 코드 유지
 
