@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -22,7 +21,7 @@
   <style>
     /* 팝업 배경 */
     #project-popup {
-      display: none;
+      display: none; 
       position: fixed;
       z-index: 9999;
       left: 0; 
@@ -32,7 +31,7 @@
       overflow: auto; 
       background-color: rgba(0,0,0,0.5);
     }
-    /* 팝업 박스 */
+    /* 팝업 내용박스 */
     #project-popup .popup-content {
       background-color: #fff;
       margin: 10% auto;
@@ -43,9 +42,9 @@
       position: relative;
     }
     #close-popup {
-      position: absolute;
+      position: absolute; 
+      top: 15px; 
       right: 15px; 
-      top: 15px;
       cursor: pointer;
       font-size: 18px;
     }
@@ -60,7 +59,6 @@
       background-color: #ccc;
       cursor: not-allowed;
     }
-
     .project-card {
       border: 1px solid #ddd;
       padding: 10px;
@@ -68,10 +66,11 @@
       cursor: pointer;
     }
   </style>
-</head>
 
+</head>
 <body class="sub_page">
 
+  <!-- 헤더 영역 -->
   <div class="hero_area">
     <header class="header_section">
       <div class="container-fluid">
@@ -79,8 +78,7 @@
           <a class="navbar-brand" href="index.html">
             <span>Finexo</span>
           </a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse"
-            data-target="#navbarSupportedContent">
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
             <span class=""> </span>
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -91,9 +89,7 @@
               <li class="nav-item"><a class="nav-link" href="alarm.html">알림</a></li>
               <li class="nav-item"><a class="nav-link" href="mypage.html">마이페이지</a></li>
               <li class="nav-item" id="login-logout-item">
-                <a class="nav-link" href="login.html" id="login-logout-link">
-                  <i class="fa fa-user"></i> 로그인
-                </a>
+                <a class="nav-link" href="login.html" id="login-logout-link"><i class="fa fa-user"></i> 로그인</a>
               </li>
               <form class="form-inline">
                 <button class="btn my-2 my-sm-0 nav_search-btn" type="submit">
@@ -107,25 +103,25 @@
     </header>
   </div>
 
+  <!-- 메인 콘텐츠 -->
   <div class="container-fluid">
     <div class="row">
-      <!-- 좌측 네비게이션 -->
-      <div class="col-md-3" style="background-color: #f8f9fa; padding: 20px;">
+      <!-- 좌측 사이드바 -->
+      <div class="col-md-3" style="background-color: #f8f9fa; padding:20px;">
         <div class="list-group">
           <a href="project_search.html" class="list-group-item list-group-item-action">프로젝트 목록</a>
           <a href="project_matching.html" class="list-group-item list-group-item-action active">프로젝트 매칭하기</a>
         </div>
       </div>
-  
       <!-- 우측 콘텐츠 -->
       <div class="col-md-9">
         <div class="heading_container heading_center">
           <h2>프로젝트 매칭 결과</h2>
         </div>
+        <!-- 매칭 버튼들 -->
         <button id="startMatchingBtn" class="btn btn-primary">매칭 시작</button>
         <button id="fetchResultBtn" class="btn btn-secondary" style="margin-left:10px;">결과 가져오기</button>
         <div id="statusMessage" style="margin-top:20px;"></div>
-
         <!-- 매칭 결과 영역 -->
         <div id="project-list" style="margin-top:20px;"></div>
       </div>
@@ -136,7 +132,7 @@
   <div id="project-popup">
     <div class="popup-content">
       <span id="close-popup">×</span>
-      <h3 id="popup-title">프로젝트 이름 없음</h3>
+      <h4 id="popup-title">프로젝트 이름 없음</h4>
       <p><strong>프로젝트 설명:</strong> <span id="popup-description">내용이 없습니다.</span></p>
       <p><strong>기술 스택:</strong> <span id="popup-techstack">기술 스택 없음</span></p>
       <p><strong>프로젝트 유형:</strong> <span id="popup-type">유형 없음</span></p>
@@ -148,17 +144,17 @@
       <!-- 지원하기 버튼 -->
       <button id="apply-button" class="btn btn-primary">지원하기</button>
 
-      <!-- 실제 지원 영역 -->
+      <!-- 지원 영역 -->
       <div id="application-section" style="display:none; margin-top:20px;">
         <h5>지원할 역할 선택</h5>
         <div id="application-roles"></div>
-        <textarea id="application-note" rows="4" cols="50" placeholder="하고 싶은 말 (지원 동기 등)"></textarea>
-        <br /><br />
+        <textarea id="application-note" rows="4" cols="50" placeholder="하고 싶은 말(지원 동기 등)"></textarea>
+        <br/><br/>
         <button id="submit-application" class="btn btn-success">지원 제출</button>
       </div>
     </div>
   </div>
-  <!-- // 팝업(모달) 끝 -->
+  <!-- // 팝업 끝 -->
 
   <section class="info_section layout_padding2">
     <div class="container">
@@ -167,38 +163,35 @@
       </div>
     </div>
   </section>
-
   <section class="footer_section">
     <div class="container">
       <p>&copy; <span id="displayYear"></span> All Rights Reserved By Free Html Templates</p>
     </div>
   </section>
 
-  <div id="notification-container" style="position: fixed; bottom: 20px; right:20px; z-index:9999;"></div>
+  <div id="notification-container" style="position: fixed; bottom:20px; right:20px; z-index:9999;"></div>
 
-  <!-- Amazon Cognito JS -->
+  <!-- Cognito -->
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
   <script src="js/cognito.js"></script>
-  
-  <!-- 통합 project_matching.js (아래 코드) -->
+  <!-- 통합 JS -->
   <script src="js/project_matching.js"></script>
 
+  <!-- 페이지 로드 시 -->
   <script>
     window.onload = function() {
       console.log('페이지 로드');
       updateNavBar();
 
-      // 매칭 조회
       const fetchResultBtn = document.getElementById('fetchResultBtn');
       fetchResultBtn.onclick = function() {
         if (!window.currentExecutionArn) {
-          alert('매칭을 시작한 적이 없습니다. 매칭 시작 버튼을 먼저 눌러주세요.');
+          alert('매칭을 시작한 적이 없습니다. "매칭 시작" 버튼부터 눌러주세요.');
           return;
         }
         fetchStepFunctionsResult(window.currentExecutionArn);
       };
 
-      // 매칭 시작
       const startMatchingBtn = document.getElementById('startMatchingBtn');
       startMatchingBtn.onclick = function() {
         const userId = getLoggedInUserId();
@@ -213,11 +206,10 @@
   </script>
 
   <!-- jQuery -->
-  <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+  <script src="js/jquery-3.4.1.min.js"></script>
   <!-- Bootstrap JS -->
-  <script type="text/javascript" src="js/bootstrap.js"></script>
-  <!-- custom.js (owlCarousel 문제시 주석처리) -->
-  <script type="text/javascript" src="js/custom.js"></script>
-
+  <script src="js/bootstrap.js"></script>
+  <!-- custom.js (owlCarousel 문제 있으면 주석처리) -->
+  <script src="js/custom.js"></script>
 </body>
 </html>
