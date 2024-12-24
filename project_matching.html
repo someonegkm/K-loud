@@ -17,7 +17,7 @@
   <link href="css/style.css" rel="stylesheet" />
   <link href="css/responsive.css" rel="stylesheet" />
 
-  <!-- 모달(팝업) 관련 간단한 스타일 -->
+  <!-- 팝업(모달) 관련 간단한 스타일 -->
   <style>
     /* 모달 배경 */
     #project-popup {
@@ -63,10 +63,9 @@
       cursor: pointer;
     }
   </style>
+
 </head>
-
 <body class="sub_page">
-
   <div class="hero_area">
     <header class="header_section">
       <div class="container-fluid">
@@ -86,9 +85,7 @@
               <li class="nav-item"><a class="nav-link" href="alarm.html">알림</a></li>
               <li class="nav-item"><a class="nav-link" href="mypage.html">마이페이지</a></li>
               <li class="nav-item" id="login-logout-item">
-                <a class="nav-link" href="login.html" id="login-logout-link">
-                  <i class="fa fa-user"></i> 로그인
-                </a>
+                <a class="nav-link" href="login.html" id="login-logout-link"><i class="fa fa-user"></i> 로그인</a>
               </li>
               <form class="form-inline">
                 <button class="btn my-2 my-sm-0 nav_search-btn" type="submit">
@@ -117,12 +114,10 @@
         <div class="heading_container heading_center">
           <h2>프로젝트 매칭 결과</h2>
         </div>
-
-        <!-- 매칭: 시작/결과 -->
+        <!-- 매칭 버튼들 -->
         <button id="startMatchingBtn" class="btn btn-primary">매칭 시작</button>
         <button id="fetchResultBtn" class="btn btn-secondary" style="margin-left:10px;">결과 가져오기</button>
         <div id="statusMessage" style="margin-top:20px;"></div>
-        <!-- 매칭 결과 표시 영역 -->
         <div id="project-list" style="margin-top:20px;"></div>
 
         <hr />
@@ -142,7 +137,6 @@
 
         <h4>기획(Planning/PM)</h4>
         <div id="planning-projects"></div>
-
       </div>
     </div>
   </div>
@@ -193,20 +187,19 @@
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
   <!-- cognito.js (UserPool 등) -->
   <script src="js/cognito.js"></script>
-  <!-- WebSocket JS (필요하면) -->
-  <script src="js/websocket.js"></script>
-
-  <!-- 프로젝트 매칭 JS (통합본) -->
+  <!-- (owlCarousel 안 쓰면 제거) -->
+  <!-- <script src="js/websocket.js"></script> -->
+  <!-- 통합 project_matching.js -->
   <script src="js/project_matching.js"></script>
 
   <script>
     window.onload = function() {
       console.log('페이지 로드');
       updateNavBar();
-      // 웹소켓 연결 필요 시
+      // 필요 시 WebSocket 연결
       // connectWebSocket();
 
-      // 매칭 결과 버튼 로직
+      // 매칭 버튼 로직
       const fetchResultBtn = document.getElementById('fetchResultBtn');
       fetchResultBtn.onclick = function() {
         if (!window.currentExecutionArn) {
@@ -233,8 +226,7 @@
   <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
   <!-- Bootstrap JS -->
   <script type="text/javascript" src="js/bootstrap.js"></script>
-  <!-- custom.js (캐러셀 등) -->
+  <!-- custom.js (owlCarousel 에러나면 주석처리) -->
   <script type="text/javascript" src="js/custom.js"></script>
-
 </body>
 </html>
