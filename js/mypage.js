@@ -5,9 +5,9 @@ let currentEditingProjectId = null;
 let currentSelectedProjectId = null; // 현재 상세정보 조회중인 프로젝트 ID
 
 // Step Functions 시작 API (방장 관점)
-const STEP_FUNCTIONS_START_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/startProjectMatching';
+const STEP_FUNCTIONS_START_API = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/matching-ai-host';
 // Top4 Matching API (방장 관점)
-const TOP4_MATCHING_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/top4project';
+const TOP4_MATCHING_API = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/top4matching-host';
 // 기존 "내 프로젝트" API
 const USER_PROJECTS_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/createproject';
 
@@ -202,7 +202,7 @@ document.getElementById('startMatchingBtn').onclick= async function(){
   runProjectMatching(currentSelectedProjectId);
 };
 
-// (A) Step Functions에 projectId, ownerId 전달
+// (A) Step Functions에 projectId, ownerId 전달 (방장 관점 매칭)
 async function runProjectMatching(projectId){
   const cognitoUser = userPool.getCurrentUser();
   if(!cognitoUser){
@@ -216,6 +216,7 @@ async function runProjectMatching(projectId){
     }
     const idToken=session.getIdToken().getJwtToken();
     try {
+      // projectId, ownerId(= userId) 전달
       const resp=await fetch(STEP_FUNCTIONS_START_API, {
         method:'POST',
         headers:{
@@ -243,7 +244,7 @@ document.getElementById('fetchResultBtn').onclick= async function(){
   fetchMatchedUsers(currentSelectedProjectId);
 };
 
-// (B) 3번 Lambda에서 top4 -> 오른쪽 표시
+// (B) 3번 Lambda에서 top4 -> 오른쪽 표시 (방장 관점 매칭 결과)
 async function fetchMatchedUsers(projectId){
   const cognitoUser=userPool.getCurrentUser();
   if(!cognitoUser){
@@ -386,7 +387,6 @@ async function removeParticipant(projectId, applicantId){
 }
 
 // 9) "참여 프로젝트" (이미 존재하는 부분)
-// 아래는 기존 코드 그대로 유지
 async function fetchMyProjects(userId) {
     const API_URL = `https://d2miwwhvzmngyp.cloudfront.net/prod/getAcceptProjects?applicantId=${userId}`;
 
@@ -449,14 +449,13 @@ function renderMyProjects(projects) {
 
       projectItem.innerHTML = `
           <h4>${project.projectName || '프로젝트 이름 없음'}</h4>
-          <p><strong>방장:</strong> ${ownerName}</p> <!-- 방장 닉네임 표시 -->
+          <p><strong>방장:</strong> ${ownerName}</p>
           <p><strong>참여 시간:</strong> ${new Date(Number(project.timestamp)).toLocaleString()}</p>
       `;
 
       container.appendChild(projectItem);
   });
 }
-
 
 // 10) 회원정보 폼 제출
 function attachFormSubmitEvent(){
