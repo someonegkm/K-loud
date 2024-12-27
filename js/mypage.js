@@ -8,10 +8,10 @@ let currentSelectedProjectId = null; // 현재 상세정보 조회중인 프로�
 const STEP_FUNCTIONS_START_API = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/matching-ai-host';
 // Top4 Matching API (방장 관점)
 const TOP4_MATCHING_API = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/top4matching-host';
-// 기존 "내 프로젝트" API (프로젝트 목록 가져오기)
+// "내 프로젝트" API
 const USER_PROJECTS_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/createproject';
 
-// 1) Cognito에서 사용자 세션 가져오기
+// 1) 사용자 세션
 function populateUserProfile() {
   const cognitoUser = userPool.getCurrentUser();
   if (!cognitoUser) {
@@ -36,13 +36,14 @@ function populateUserProfile() {
     document.getElementById('user-name').value = payload.name || '이름 없음';
     document.getElementById('user-email').value = payload.email || '이메일 없음';
 
-    // 추가 API
+    // 추가 프로필 API
     fetchUserProfile();
-    fetchMyProjects();
+    // "내 프로젝트" 불러오기
+    fetchUserProjects();
   });
 }
 
-// 2) 사용자 프로필 가져오기
+// 2) 프로필 가져오기
 async function fetchUserProfile() {
   try {
     const accessToken = localStorage.getItem('accessToken');
@@ -87,7 +88,7 @@ async function fetchUserProfile() {
 }
 
 // 3) "내 프로젝트" 가져오기
-async function fetchMyProjects() {
+async function fetchUserProjects() {
   try {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
@@ -96,7 +97,6 @@ async function fetchMyProjects() {
       return;
     }
 
-    // 기존 API URL => userProjects
     const response = await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/createproject?ownerId=${userId}`, {
       method: 'GET',
       headers: {
@@ -111,7 +111,6 @@ async function fetchMyProjects() {
     const userProjects = await response.json();
     console.log('가져온 프로젝트 데이터:', userProjects);
 
-    // userProjects.data 가 실제 배열
     renderUserProjects(userProjects.data || []);
   } catch (error) {
     console.error('사용자 프로젝트 가져오기 오류:', error);
@@ -119,7 +118,7 @@ async function fetchMyProjects() {
   }
 }
 
-// 4) 화면에 "내 프로젝트" 표시 => Bootstrap Card 방식
+// 4) 프로젝트 목록을 Card로 표시
 function renderUserProjects(projects) {
   const container = document.getElementById('user-projects-container');
   container.innerHTML = '';
@@ -134,24 +133,23 @@ function renderUserProjects(projects) {
     const card = document.createElement('div');
     card.className = 'card';
 
-    const createdAt = proj.createdAt || '알 수 없음';
+    const createdTime = proj.createdAt || '알 수 없음';
     const headerHtml = `
       <div class="card-header">
         <h5 class="card-title mb-0">${proj.projectName || '프로젝트 이름 없음'}</h5>
-        <small class="text-muted">생성 일시: ${createdAt}</small>
+        <small class="text-muted">생성 일시: ${createdTime}</small>
       </div>
     `;
 
-    // 기술스택 => badge
-    let techBadges = '';
+    // 기술스택 Badge
+    let techStackList = '';
     if (Array.isArray(proj.techStack)) {
-      techBadges = proj.techStack.map(ts => `<span class="badge badge-info">${ts}</span>`).join(' ');
+      techStackList = proj.techStack.map(ts => `<span class="badge badge-info">${ts}</span>`).join(' ');
     }
-
     const bodyHtml = `
       <div class="card-body">
         <p><strong>설명:</strong> ${proj.projectDescription || '설명 없음'}</p>
-        <p><strong>기술 스택:</strong> ${techBadges}</p>
+        <p><strong>기술 스택:</strong> ${techStackList}</p>
         <p><strong>유형:</strong> ${proj.projectType || '유형 없음'}</p>
       </div>
     `;
@@ -171,7 +169,7 @@ function renderUserProjects(projects) {
   window.userProjectsCache = projects;
 }
 
-// 프로젝트 선택
+// 5) 프로젝트 선택
 function selectProject(projectId) {
   currentSelectedProjectId = projectId;
   showProjectDetail(projectId);
@@ -192,26 +190,22 @@ function showProjectDetail(projectId) {
   const parts = project.participants || [];
   if (parts.length > 0) {
     participantsHTML = `
-      <h5>참가한 인원:</h5>
+      <h5>참가 인원:</h5>
       <ul>
-        ${parts
-          .map(
-            pt => `
-              <li>
-                <strong>ID:</strong> ${pt.applicantId}<br>
-                <strong>역할:</strong> ${pt.role}<br>
-                <button class="btn btn-warning btn-sm" onclick="removeParticipant('${project.projectId}','${pt.applicantId}')">내쫓기</button>
-              </li>
-            `
-          )
-          .join('')}
+        ${parts.map(pt => `
+          <li>
+            <strong>ID:</strong> ${pt.applicantId}<br>
+            <strong>역할:</strong> ${pt.role}<br>
+            <button class="btn btn-warning btn-sm" onclick="removeParticipant('${project.projectId}','${pt.applicantId}')">내쫓기</button>
+          </li>
+        `).join('')}
       </ul>
     `;
   }
 
   document.getElementById('project-detail-container').innerHTML = `
     <h5>${project.projectName}</h5>
-    <p><strong>설명:</strong> ${project.projectDescription || ''}</p>
+    <p><strong>설명:</strong> ${project.projectDescription || '설명 없음'}</p>
     <p><strong>기술 스택:</strong> ${(project.techStack || []).join(', ')}</p>
     <p><strong>유형:</strong> ${project.projectType || ''}</p>
     <p><strong>생성 일시:</strong> ${project.createdAt || ''}</p>
@@ -290,7 +284,6 @@ async function fetchMatchedUsers(projectId) {
 
       const data = await resp.json();
       console.log('[fetchMatchedUsers] data:', data);
-
       renderMatchedUsers(data.top_4 || []);
       document.getElementById('statusMessage').innerHTML = '<p>매칭 결과가 표시되었습니다.</p>';
     } catch (e) {
@@ -300,7 +293,7 @@ async function fetchMatchedUsers(projectId) {
   });
 }
 
-// 매칭된 유저 표시 => Card
+// 매칭된 유저 목록 Card
 function renderMatchedUsers(users) {
   const container = document.getElementById('matched-users-container');
   container.innerHTML = '';
@@ -314,17 +307,14 @@ function renderMatchedUsers(users) {
     const card = document.createElement('div');
     card.className = 'card mb-2';
 
-    // 카드 헤더: UserID + 점수
     const headerHtml = `
       <div class="card-header">
         <h6 class="card-title mb-0">
           UserID: ${u.UserID || ''} 
-          <small class="text-muted">(점수: ${u.SimilarityScore?.toFixed(2) || '0.0'})</small>
+          <small class="text-muted">(점수: ${u.SimilarityScore?.toFixed(2) || '0'})</small>
         </h6>
       </div>
     `;
-
-    // 본문
     const bodyHtml = `
       <div class="card-body">
         <p><strong>이름:</strong> ${u.userName || ''}</p>
@@ -332,13 +322,12 @@ function renderMatchedUsers(users) {
         <p><strong>자기소개:</strong> ${u.userIntro || ''}</p>
       </div>
     `;
-
     card.innerHTML = headerHtml + bodyHtml;
     container.appendChild(card);
   });
 }
 
-// 삭제, 수정, removeParticipant 등 기존 로직
+// 삭제, 수정, 내쫓기
 async function deleteProject(projectId) {
   if (!confirm('정말 프로젝트를 삭제하시겠습니까?')) return;
   try {
@@ -353,7 +342,7 @@ async function deleteProject(projectId) {
     });
     if (!resp.ok) throw new Error('프로젝트 삭제 실패');
     alert('프로젝트가 삭제되었습니다!');
-    fetchMyProjects();
+    fetchUserProjects();
   } catch (e) {
     console.error('프로젝트 삭제 에러:', e);
     alert('프로젝트 삭제 중 오류');
@@ -407,14 +396,13 @@ document.getElementById('saveEditButton').onclick = async function () {
     if (!response.ok) throw new Error('프로젝트 수정 실패');
     alert('프로젝트가 성공적으로 수정되었습니다!');
     closeEditPopup();
-    fetchMyProjects();
+    fetchUserProjects();
   } catch (e) {
     console.error('프로젝트 수정 에러:', e);
     alert('프로젝트 수정 오류');
   }
 };
 
-// 참가자 내쫓기
 async function removeParticipant(projectId, applicantId) {
   if (!confirm('정말 참가자를 내쫓으시겠습니까?')) return;
   try {
@@ -433,7 +421,7 @@ async function removeParticipant(projectId, applicantId) {
     });
     if (!resp.ok) throw new Error('참가자 삭제 실패');
     alert('참가자를 내쫓았습니다!');
-    fetchMyProjects();
+    fetchUserProjects();
     if (currentSelectedProjectId === projectId) {
       showProjectDetail(projectId);
     }
@@ -443,15 +431,15 @@ async function removeParticipant(projectId, applicantId) {
   }
 }
 
-// "참여한 프로젝트" (기존 코드를 유지)
+// 9) "참여한 프로젝트" (기존 유지)
 async function fetchMyProjects(userId) {
-  // 이미 위에서 fetchMyProjects() 구현됨.
-  // 만약 "참여 프로젝트"와 "내가 만든 프로젝트" API가 다르다면, 구분해서 만드셔야 합니다.
-  // 여기서는 편의상 동일하게 사용, 필요 시 분리.
+  // 혹시 "참여 프로젝트" API가 별도라면 여기에 코드를.
+  // 원본 코드 유지 필요 시 그대로 두시면 됩니다.
 }
 
 function renderMyProjects(projects) {
-  // 참여한 프로젝트 표시 로직 (원하시면 Card로 만들 수도 있음)
+  // "참여 프로젝트" 목록을 표시하는 기존 코드
+  // Card로 만들거나, 기존대로 유지하시면 됩니다.
   const container = document.getElementById('participated-projects-container');
   container.innerHTML = '';
   if (!projects || projects.length === 0) {
@@ -464,7 +452,7 @@ function renderMyProjects(projects) {
 // 회원정보 폼 제출
 function attachFormSubmitEvent() {
   const form = document.getElementById('profile-form');
-  form.addEventListener('submit', async function (e) {
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
     const userProfile = {
       UserID: userId,
@@ -501,7 +489,7 @@ function attachFormSubmitEvent() {
   });
 }
 
-// 네비게이션 로그인/로그아웃 유지
+// 네비게이션
 function updateNavBar() {
   const cognitoUser = userPool.getCurrentUser();
   const loginLogoutLink = document.getElementById('login-logout-link');
@@ -520,5 +508,5 @@ function updateNavBar() {
 }
 
 function connectWebSocket(userPool) {
-  // 그대로 유지
+  // 기존 websocket.js 로직 그대로 유지
 }

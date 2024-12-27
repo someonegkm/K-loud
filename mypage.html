@@ -22,25 +22,25 @@
   <link href="css/responsive.css" rel="stylesheet" />
 
   <style>
-    /* 기존 .project-item 대신, Bootstrap .card 구조에 맞춘 약간의 스타일 */
+    /* 프로젝트/매칭 리스트를 Card 형식으로 꾸미기 위한 최소 스타일 */
     .card + .card {
       margin-top: 20px;
     }
     .card-body p {
       line-height: 1.6;
-      margin-bottom: 0.75rem; /* 조금 여백 */
+      margin-bottom: 0.75rem;
     }
     .badge {
       margin-right: 5px;
     }
 
-    /* 왼쪽 프로젝트 상세, 오른쪽 매칭 결과 레이아웃 */
+    /* 왼쪽 프로젝트 상세, 오른쪽 매칭 결과 (2단) */
     #project-detail-container,
     #matched-users-container {
       border: 1px solid #ccc;
       padding: 10px;
       background: #f9f9f9;
-      min-height: 300px; /* 예시로 최소 높이만 유지 */
+      min-height: 300px;
     }
 
     .checkbox-grid label {
@@ -95,10 +95,14 @@
               <li class="nav-item"><a class="nav-link" href="alarm.html">알림</a></li>
               <li class="nav-item active"><a class="nav-link" href="mypage.html">마이페이지 <span class="sr-only">(current)</span></a></li>
               <li class="nav-item" id="login-logout-item">
-                <a class="nav-link" href="login.html" id="login-logout-link"><i class="fa fa-user" aria-hidden="true"></i> 로그인</a>
+                <a class="nav-link" href="login.html" id="login-logout-link">
+                  <i class="fa fa-user" aria-hidden="true"></i> 로그인
+                </a>
               </li>
               <form class="form-inline">
-                <button class="btn my-2 my-sm-0 nav_search-btn" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+                <button class="btn my-2 my-sm-0 nav_search-btn" type="submit">
+                  <i class="fa fa-search" aria-hidden="true"></i>
+                </button>
               </form>
             </ul>
           </div>
@@ -138,8 +142,7 @@
         <!-- 내 프로젝트 -->
         <div class="tab-pane fade show active" id="my-projects" role="tabpanel" aria-labelledby="my-projects-tab">
           <h3>내 프로젝트</h3>
-
-          <!-- 프로젝트 카드 목록 -->
+          <!-- 프로젝트 목록 -->
           <div id="user-projects-container" class="mt-3"></div>
 
           <!-- 2단 레이아웃: 왼쪽(프로젝트 상세정보), 오른쪽(매칭된 유저) -->
@@ -279,33 +282,35 @@
 
   <div id="notification-container" style="position: fixed; bottom: 20px; right:20px; z-index:9999;"></div>
 
-  <!-- AWS Cognito JavaScript SDK -->
+  <!-- 1) jQuery 먼저 -->
+  <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+
+  <!-- 2) Bootstrap JS -->
+  <script type="text/javascript" src="js/bootstrap.js"></script>
+
+  <!-- 3) custom.js (owlCarousel 등) -->
+  <script type="text/javascript" src="js/custom.js"></script>
+
+  <!-- 4) AWS Cognito JavaScript SDK -->
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
   <script src="js/cognito.js"></script>
 
-  <!-- 기존 custom.js, owlCarousel 등을 그대로 유지한다면 -->
-  <script src="js/custom.js"></script>
-  <!-- owlCarousel if needed -->
-  <!-- <script src="js/owl.carousel.min.js"></script> -->
-
-  <!-- mypage.js (아래에서 수정) -->
+  <!-- 5) mypage.js (Card 관련 최소 수정) -->
   <script src="js/mypage.js"></script>
+
+  <!-- Websocket (기존) -->
   <script src="js/websocket.js"></script>
 
   <script>
     window.onload = function() {
       console.log('페이지 로드');
-      updateNavBar();        // 기존 함수
-      populateUserProfile(); // 기존 함수
-      attachFormSubmitEvent(); 
-      fetchUserProjects();   // 프로젝트 목록
+      updateNavBar();
+      populateUserProfile();
+      attachFormSubmitEvent();
+      // fetchUserProjects()는 populateUserProfile() 안에서 호출되거나,
+      // 여기서 별도로 호출해도 됩니다.
       connectWebSocket(userPool);
     };
   </script>
-
-  <!-- jQuery -->
-  <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
-  <!-- Bootstrap JS -->
-  <script type="text/javascript" src="js/bootstrap.js"></script>
 </body>
 </html>
