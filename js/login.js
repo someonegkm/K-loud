@@ -10,6 +10,9 @@ const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 
 let container = document.getElementById('container');
 
+// 비밀번호 재설정 로직 추가
+let isCodeSent = false; // 코드 전송 여부 확인 플래그
+
 // 화면 전환 함수
 function toggle() {
   container.classList.toggle('sign-in');
@@ -280,6 +283,202 @@ async function fetchUserInfo(accessToken) {
     console.error('Error fetching user info:', error);
   }
 }
+
+// 비밀번호 재설정 링크 클릭 핸들러
+const forgotPasswordLink = document.getElementById('forgot-password-link');
+forgotPasswordLink.addEventListener('click', function (e) {
+  e.preventDefault();
+  const signinButton = document.getElementById('signin-button');
+  const signinPassword = document.getElementById('signin-password');
+  const socialLoginBox = document.getElementById('social-login'); // 소셜 로그인 영역
+
+  if (forgotPasswordLink.textContent === '비밀번호를 잊어버리셨나요?') {
+    // 비밀번호 재설정 상태로 전환
+    forgotPasswordLink.textContent = '로그인 창으로';
+
+    signinButton.textContent = '코드 전송';
+    signinButton.onclick = sendResetCode;
+
+    // 비밀번호 필드 숨기고 이메일 필드 추가
+    signinPassword.style.display = 'none';
+    const signinEmail = document.createElement('input');
+    signinEmail.type = 'email';
+    signinEmail.id = 'signin-email';
+    signinEmail.placeholder = '이메일';
+    signinPassword.parentNode.appendChild(signinEmail);
+
+    // 소셜 로그인 숨기기
+    if (socialLoginBox) {
+      socialLoginBox.style.display = 'none';
+    }
+  } else {
+    // 로그인 상태로 복구
+    resetToLoginState();
+  }
+});
+
+// 코드 전송 기능
+function sendResetCode() {
+  if (isCodeSent) {
+    const signinErrorElement = document.getElementById('signin-error');
+    signinErrorElement.textContent = '이미 코드가 전송되었습니다. 이메일을 확인해주세요.';
+    signinErrorElement.style.color = 'red';
+    signinErrorElement.style.display = 'block';
+    return;
+  }
+
+  const id = document.getElementById('signin-id').value.trim();
+  const email = document.getElementById('signin-email').value.trim();
+  const signinErrorElement = document.getElementById('signin-error');
+
+  if (!id || !email) {
+    signinErrorElement.textContent = '아이디와 이메일을 모두 입력해주세요.';
+    signinErrorElement.style.color = 'red';
+    signinErrorElement.style.display = 'block';
+    return;
+  }
+
+  const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+    Username: id,
+    Pool: userPool,
+  });
+
+  // 비밀번호 재설정 요청
+  cognitoUser.forgotPassword({
+    onSuccess: function (data) {
+      console.log('코드 전송 성공:', data);
+      signinErrorElement.textContent = '확인 코드가 이메일로 전송되었습니다.';
+      signinErrorElement.style.color = 'green';
+      signinErrorElement.style.display = 'block';
+
+      isCodeSent = true; // 코드 전송 완료 상태로 변경
+      displayResetPasswordFields();
+    },
+    onFailure: function (err) {
+      signinErrorElement.textContent = err.message || JSON.stringify(err);
+      signinErrorElement.style.color = 'red';
+      signinErrorElement.style.display = 'block';
+    },
+  });
+}
+
+
+
+// 비밀번호 재설정 필드 표시
+function displayResetPasswordFields() {
+  const signinId = document.getElementById('signin-id');
+  signinId.disabled = true; // 아이디 필드 비활성화
+
+  const signinEmail = document.getElementById('signin-email');
+  signinEmail.disabled = true; // 이메일 필드 비활성화
+
+  // 확인 코드 입력 필드 추가
+  const resetCodeInput = document.createElement('input');
+  resetCodeInput.type = 'text';
+  resetCodeInput.id = 'reset-code';
+  resetCodeInput.placeholder = '확인 코드';
+  signinEmail.parentNode.appendChild(resetCodeInput);
+
+  // 새 비밀번호 입력 필드 추가
+  const newPasswordInput = document.createElement('input');
+  newPasswordInput.type = 'password';
+  newPasswordInput.id = 'new-password';
+  newPasswordInput.placeholder = '새 비밀번호';
+  signinEmail.parentNode.appendChild(newPasswordInput);
+
+  const confirmPasswordInput = document.createElement('input');
+  confirmPasswordInput.type = 'password';
+  confirmPasswordInput.id = 'confirm-password';
+  confirmPasswordInput.placeholder = '새 비밀번호 확인';
+  signinEmail.parentNode.appendChild(confirmPasswordInput);
+
+  // 비밀번호 변경 버튼 추가
+  const resetPasswordButton = document.createElement('button');
+  resetPasswordButton.id = 'reset-password-button';
+  resetPasswordButton.textContent = '비밀번호 변경';
+  resetPasswordButton.onclick = resetPassword;
+  signinEmail.parentNode.appendChild(resetPasswordButton);
+}
+
+// 비밀번호 변경 처리
+function resetPassword() {
+  const id = document.getElementById('signin-id').value.trim();
+  const resetCode = document.getElementById('reset-code').value.trim();
+  const newPassword = document.getElementById('new-password').value.trim();
+  const confirmPassword = document.getElementById('confirm-password').value.trim();
+  const signinErrorElement = document.getElementById('signin-error');
+
+  if (!resetCode || !newPassword || !confirmPassword) {
+    signinErrorElement.textContent = '모든 필드를 입력해주세요.';
+    signinErrorElement.style.color = 'red';
+    signinErrorElement.style.display = 'block';
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    signinErrorElement.textContent = '비밀번호가 일치하지 않습니다.';
+    signinErrorElement.style.color = 'red';
+    signinErrorElement.style.display = 'block';
+    return;
+  }
+
+  const cognitoUser = new AmazonCognitoIdentity.CognitoUser({
+    Username: id,
+    Pool: userPool,
+  });
+
+  cognitoUser.confirmPassword(resetCode, newPassword, {
+    onSuccess: function () {
+      console.log('비밀번호 변경 성공');
+      signinErrorElement.textContent = '비밀번호가 성공적으로 변경되었습니다. 잠시 후 로그인 화면으로 이동합니다.';
+      signinErrorElement.style.color = 'green';
+      signinErrorElement.style.display = 'block';
+
+      setTimeout(resetToLoginState, 3000); // 3초 후 로그인 화면으로 복구
+    },
+    onFailure: function (err) {
+      signinErrorElement.textContent = err.message || JSON.stringify(err);
+      signinErrorElement.style.color = 'red';
+      signinErrorElement.style.display = 'block';
+    },
+  });
+}
+
+// 로그인 화면 복구
+function resetToLoginState() {
+  const signinButton = document.getElementById('signin-button');
+  signinButton.textContent = '로그인';
+  signinButton.onclick = null;
+  signinButton.addEventListener('click', handleSignIn);
+
+  const forgotPasswordLink = document.getElementById('forgot-password-link');
+  forgotPasswordLink.textContent = '비밀번호를 잊어버리셨나요?';
+
+  const signinEmail = document.getElementById('signin-email');
+  if (signinEmail) signinEmail.remove();
+
+  const signinPassword = document.getElementById('signin-password');
+  signinPassword.style.display = 'block';
+
+  const resetCodeField = document.getElementById('reset-code');
+  const newPasswordField = document.getElementById('new-password');
+  const confirmPasswordField = document.getElementById('confirm-password');
+  const resetPasswordButton = document.getElementById('reset-password-button');
+
+  if (resetCodeField) resetCodeField.remove();
+  if (newPasswordField) newPasswordField.remove();
+  if (confirmPasswordField) confirmPasswordField.remove();
+  if (resetPasswordButton) resetPasswordButton.remove();
+
+  const socialLoginBox = document.getElementById('social-login');
+  if (socialLoginBox) {
+    socialLoginBox.style.display = 'block';
+  }
+
+  const signinError = document.getElementById('signin-error');
+  signinError.textContent = '';
+}
+
 
 // 메인 페이지로 이동하는 함수
 function goToMain() {
