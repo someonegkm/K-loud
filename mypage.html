@@ -295,7 +295,7 @@
   <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5/dist/amazon-cognito-identity.min.js"></script>
   <script src="js/cognito.js"></script>
 
-  <!-- 5) mypage.js (Card 관련 최소 수정) -->
+  <!-- 5) mypage.js (개행 처리 추가) -->
   <script src="js/mypage.js"></script>
 
   <!-- Websocket (기존) -->
@@ -307,8 +307,7 @@
       updateNavBar();
       populateUserProfile();
       attachFormSubmitEvent();
-      // fetchUserProjects()는 populateUserProfile() 안에서 호출되거나,
-      // 여기서 별도로 호출해도 됩니다.
+      // fetchUserProjects()는 populateUserProfile() 내부에서 이미 호출
       connectWebSocket(userPool);
     };
   </script>

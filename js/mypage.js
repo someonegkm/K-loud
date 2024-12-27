@@ -11,6 +11,16 @@ const TOP4_MATCHING_API = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazona
 // "내 프로젝트" API
 const USER_PROJECTS_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/createproject';
 
+// (A) 헬퍼 함수: 개행(\n)을 <br>로 치환
+function formatMultilineText(text) {
+  if (!text) return '';
+  // \r\n, \r, \n 모두 치환
+  return text
+    .replace(/\r\n/g, '<br>')
+    .replace(/\r/g, '<br>')
+    .replace(/\n/g, '<br>');
+}
+
 // 1) 사용자 세션
 function populateUserProfile() {
   const cognitoUser = userPool.getCurrentUser();
@@ -118,7 +128,7 @@ async function fetchUserProjects() {
   }
 }
 
-// 4) 프로젝트 목록을 Card로 표시
+// 4) 프로젝트 목록을 Card로 표시 + 개행 치환
 function renderUserProjects(projects) {
   const container = document.getElementById('user-projects-container');
   container.innerHTML = '';
@@ -141,6 +151,9 @@ function renderUserProjects(projects) {
       </div>
     `;
 
+    // 프로젝트 설명 개행 치환
+    const descHtml = formatMultilineText(proj.projectDescription || '');
+
     // 기술스택 Badge
     let techStackList = '';
     if (Array.isArray(proj.techStack)) {
@@ -148,7 +161,7 @@ function renderUserProjects(projects) {
     }
     const bodyHtml = `
       <div class="card-body">
-        <p><strong>설명:</strong> ${proj.projectDescription || '설명 없음'}</p>
+        <p><strong>설명:</strong> ${descHtml || '설명 없음'}</p>
         <p><strong>기술 스택:</strong> ${techStackList}</p>
         <p><strong>유형:</strong> ${proj.projectType || '유형 없음'}</p>
       </div>
@@ -177,7 +190,7 @@ function selectProject(projectId) {
   document.getElementById('fetchResultBtn').disabled = false;
 }
 
-// 프로젝트 상세
+// 프로젝트 상세 (개행 치환)
 function showProjectDetail(projectId) {
   if (!window.userProjectsCache) return;
   const project = window.userProjectsCache.find(p => p.projectId === projectId);
@@ -203,10 +216,13 @@ function showProjectDetail(projectId) {
     `;
   }
 
+  const descHtml = formatMultilineText(project.projectDescription || '');
+  const techStr = Array.isArray(project.techStack) ? project.techStack.join(', ') : '';
+
   document.getElementById('project-detail-container').innerHTML = `
-    <h5>${project.projectName}</h5>
-    <p><strong>설명:</strong> ${project.projectDescription || '설명 없음'}</p>
-    <p><strong>기술 스택:</strong> ${(project.techStack || []).join(', ')}</p>
+    <h5>${project.projectName || ''}</h5>
+    <p><strong>설명:</strong> ${descHtml || '설명 없음'}</p>
+    <p><strong>기술 스택:</strong> ${techStr}</p>
     <p><strong>유형:</strong> ${project.projectType || ''}</p>
     <p><strong>생성 일시:</strong> ${project.createdAt || ''}</p>
     ${participantsHTML}
@@ -293,7 +309,7 @@ async function fetchMatchedUsers(projectId) {
   });
 }
 
-// 매칭된 유저 목록 Card
+// 매칭된 유저 목록도 Card
 function renderMatchedUsers(users) {
   const container = document.getElementById('matched-users-container');
   container.innerHTML = '';
@@ -307,19 +323,24 @@ function renderMatchedUsers(users) {
     const card = document.createElement('div');
     card.className = 'card mb-2';
 
+    const score = (u.SimilarityScore && !isNaN(u.SimilarityScore))
+      ? u.SimilarityScore.toFixed(2) : '0';
+
     const headerHtml = `
       <div class="card-header">
         <h6 class="card-title mb-0">
           UserID: ${u.UserID || ''} 
-          <small class="text-muted">(점수: ${u.SimilarityScore?.toFixed(2) || '0'})</small>
+          <small class="text-muted">(점수: ${score})</small>
         </h6>
       </div>
     `;
+    // 유저 소개도 개행 치환 가능
+    const introHtml = formatMultilineText(u.userIntro || '');
     const bodyHtml = `
       <div class="card-body">
         <p><strong>이름:</strong> ${u.userName || ''}</p>
         <p><strong>기술스택:</strong> ${u.userTechStack || ''}</p>
-        <p><strong>자기소개:</strong> ${u.userIntro || ''}</p>
+        <p><strong>자기소개:</strong> ${introHtml}</p>
       </div>
     `;
     card.innerHTML = headerHtml + bodyHtml;
@@ -327,7 +348,7 @@ function renderMatchedUsers(users) {
   });
 }
 
-// 삭제, 수정, 내쫓기
+// 삭제
 async function deleteProject(projectId) {
   if (!confirm('정말 프로젝트를 삭제하시겠습니까?')) return;
   try {
@@ -352,8 +373,11 @@ async function deleteProject(projectId) {
 function openEditPopup(project) {
   currentEditingProjectId = project.projectId;
   document.getElementById('edit-projectName').value = project.projectName || '';
-  document.getElementById('edit-projectDescription').value = project.projectDescription || '';
-  document.getElementById('edit-techStack').value = project.techStack ? project.techStack.join(', ') : '';
+  // 편집 폼에서 편집할 때는 개행 복원 없이 raw 데이터(, ) 사용
+  document.getElementById('edit-projectDescription').value =
+    project.projectDescription || '';
+  document.getElementById('edit-techStack').value =
+    project.techStack ? project.techStack.join(', ') : '';
   document.getElementById('edit-projectType').value = project.projectType || 'Web Development';
   document.getElementById('edit-maxTeamSize').value = project.maxTeamSize || 0;
   document.getElementById('edit-project-popup').style.display = 'block';
@@ -373,6 +397,7 @@ document.getElementById('saveEditButton').onclick = async function () {
   const updatedProject = {
     projectId: currentEditingProjectId,
     projectName: document.getElementById('edit-projectName').value,
+    // 사용자 입력을 그대로 저장
     projectDescription: document.getElementById('edit-projectDescription').value,
     techStack: document.getElementById('edit-techStack').value.split(',').map(s => s.trim()),
     projectType: document.getElementById('edit-projectType').value,
@@ -433,19 +458,10 @@ async function removeParticipant(projectId, applicantId) {
 
 // 9) "참여한 프로젝트" (기존 유지)
 async function fetchMyProjects(userId) {
-  // 혹시 "참여 프로젝트" API가 별도라면 여기에 코드를.
-  // 원본 코드 유지 필요 시 그대로 두시면 됩니다.
+  // ...
 }
 
 function renderMyProjects(projects) {
-  // "참여 프로젝트" 목록을 표시하는 기존 코드
-  // Card로 만들거나, 기존대로 유지하시면 됩니다.
-  const container = document.getElementById('participated-projects-container');
-  container.innerHTML = '';
-  if (!projects || projects.length === 0) {
-    container.innerHTML = '<p>참여한 프로젝트가 없습니다.</p>';
-    return;
-  }
   // ...
 }
 
