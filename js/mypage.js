@@ -8,7 +8,7 @@ let currentSelectedProjectId = null; // 현재 상세정보 조회중인 프로�
 const STEP_FUNCTIONS_START_API = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/matching-ai-host';
 // Top4 Matching API (방장 관점)
 const TOP4_MATCHING_API = 'https://1ezekx8bu3.execute-api.ap-northeast-2.amazonaws.com/dev/top4matching-host';
-// 기존 "내 프로젝트" API (프로젝트 목록 가져오기)
+// "내 프로젝트" API (프로젝트 목록 가져오기)
 const USER_PROJECTS_API = 'https://<your_api>.execute-api.ap-northeast-2.amazonaws.com/prod/createproject';
 
 // 1) Cognito 세션
@@ -36,13 +36,12 @@ function populateUserProfile() {
     document.getElementById('user-name').value = payload.name || '이름 없음';
     document.getElementById('user-email').value = payload.email || '이메일 없음';
 
-    // 추가 API들
-    fetchUserProfile();
-    fetchMyProjects(userId);
+    fetchUserProfile(); // 추가 API 호출
+    fetchMyProjects(userId); // 내가 만든 프로젝트 목록
   });
 }
 
-// 2) 사용자 프로필
+// 2) 사용자 프로필 가져오기
 async function fetchUserProfile() {
   try {
     const accessToken = localStorage.getItem('accessToken');
@@ -86,12 +85,12 @@ async function fetchUserProfile() {
   }
 }
 
-// 3) "내 프로젝트" (내가 만든 프로젝트) 가져오기
-async function fetchUserProjects() {
+// 3) "내 프로젝트" 목록
+async function fetchMyProjects() {
   try {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
-      alert('Access Token이 없습니다. 다시 로그인해주세요.');
+      alert('로그인이 필요합니다.');
       window.location.href = 'login.html';
       return;
     }
@@ -110,7 +109,6 @@ async function fetchUserProjects() {
     const userProjects = await response.json();
     console.log('가져온 프로젝트 데이터:', userProjects);
 
-    // userProjects.data 가 실제 배열
     renderUserProjects(userProjects.data || []);
   } catch (error) {
     console.error('사용자 프로젝트 가져오기 오류:', error);
@@ -118,7 +116,7 @@ async function fetchUserProjects() {
   }
 }
 
-// 4) 화면에 "내 프로젝트" 표시
+// 4) 화면에 "내 프로젝트" 표시 (Bootstrap 카드)
 function renderUserProjects(projects) {
   const container = document.getElementById('user-projects-container');
   container.innerHTML = '';
@@ -129,25 +127,49 @@ function renderUserProjects(projects) {
   }
 
   projects.forEach(proj => {
-    const div = document.createElement('div');
-    div.className = 'project-item';
-    div.innerHTML = `
-      <h4>${proj.projectName || '프로젝트 이름 없음'}</h4>
-      <p><strong>설명:</strong> ${proj.projectDescription || '설명 없음'}</p>
-      <p><strong>기술 스택:</strong> ${proj.techStack ? proj.techStack.join(', ') : ''}</p>
-      <p><strong>유형:</strong> ${proj.projectType || '유형 없음'}</p>
-      <p><strong>생성 일시:</strong> ${proj.createdAt || '알 수 없음'}</p>
-      <button class="btn btn-sm btn-info" onclick="selectProject('${proj.projectId}')">선택</button>
-      <button class="btn btn-primary btn-sm" onclick='openEditPopup(${JSON.stringify(proj)})'>수정</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteProject('${proj.projectId}')">삭제</button>
+    // Bootstrap Card 구조
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const createdAtText = proj.createdAt || '알 수 없음';
+    const techStack = Array.isArray(proj.techStack) ? proj.techStack : [];
+
+    const headerHtml = `
+      <div class="card-header">
+        <h5 class="card-title mb-0">${proj.projectName || '프로젝트 이름 없음'}</h5>
+        <small class="text-muted">생성 일시: ${createdAtText}</small>
+      </div>
     `;
-    container.appendChild(div);
+
+    const bodyHtml = `
+      <div class="card-body">
+        <p><strong>설명:</strong></p>
+        <p style="line-height:1.6;">${proj.projectDescription || '설명 없음'}</p>
+
+        <p><strong>기술 스택: </strong>
+          ${techStack.map(ts => `<span class="badge badge-info">${ts}</span>`).join(' ')}
+        </p>
+
+        <p><strong>유형:</strong> ${proj.projectType || '유형 없음'}</p>
+      </div>
+    `;
+
+    const footerHtml = `
+      <div class="card-footer text-right">
+        <button class="btn btn-sm btn-info" onclick="selectProject('${proj.projectId}')">선택</button>
+        <button class="btn btn-sm btn-primary" onclick='openEditPopup(${JSON.stringify(proj)})'>수정</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteProject('${proj.projectId}')">삭제</button>
+      </div>
+    `;
+
+    card.innerHTML = headerHtml + bodyHtml + footerHtml;
+    container.appendChild(card);
   });
 
   window.userProjectsCache = projects;
 }
 
-// 5) 프로젝트 선택 -> 버튼 활성
+// 프로젝트 선택
 function selectProject(projectId) {
   currentSelectedProjectId = projectId;
   showProjectDetail(projectId);
@@ -155,7 +177,7 @@ function selectProject(projectId) {
   document.getElementById('fetchResultBtn').disabled = false;
 }
 
-// 상세정보 표시
+// 상세 정보
 function showProjectDetail(projectId) {
   if (!window.userProjectsCache) return;
   const project = window.userProjectsCache.find(p => p.projectId === projectId);
@@ -186,16 +208,16 @@ function showProjectDetail(projectId) {
   }
 
   document.getElementById('project-detail-container').innerHTML = `
-    <h4>${project.projectName}</h4>
-    <p><strong>설명:</strong> ${project.projectDescription}</p>
-    <p><strong>기술 스택:</strong> ${project.techStack ? project.techStack.join(', ') : ''}</p>
+    <h5>${project.projectName}</h5>
+    <p><strong>설명:</strong> ${project.projectDescription || ''}</p>
+    <p><strong>기술 스택:</strong> ${(project.techStack || []).join(', ')}</p>
     <p><strong>유형:</strong> ${project.projectType || ''}</p>
     <p><strong>생성 일시:</strong> ${project.createdAt || ''}</p>
     ${participantsHTML}
   `;
 }
 
-// 6) 매칭 실행 (Step Functions)
+// 6) 매칭 실행
 document.getElementById('startMatchingBtn').onclick = async function () {
   if (!currentSelectedProjectId) {
     alert('프로젝트를 선택하세요.');
@@ -233,12 +255,12 @@ async function runProjectMatching(projectId) {
       alert('매칭 실행 중 오류');
     }
   });
-};
+}
 
-// 7) 결과 가져오기 버튼
+// 7) 결과 가져오기
 document.getElementById('fetchResultBtn').onclick = async function () {
   if (!currentSelectedProjectId) {
-    alert('프로젝트 선택필요');
+    alert('프로젝트를 먼저 선택하세요.');
     return;
   }
   fetchMatchedUsers(currentSelectedProjectId);
@@ -263,10 +285,8 @@ async function fetchMatchedUsers(projectId) {
         headers: { Authorization: `Bearer ${idToken}` },
       });
       if (!resp.ok) throw new Error('결과 조회 실패');
-
       const data = await resp.json();
-      console.log('[fetchMatchedUsers] data:', data); // 콘솔에 전체 응답 확인
-      // data.top_4에 유저 배열이 들어있을 것으로 예상
+      console.log('[fetchMatchedUsers] data:', data);
       renderMatchedUsers(data.top_4 || []);
       document.getElementById('statusMessage').innerHTML = '<p>매칭 결과가 표시되었습니다.</p>';
     } catch (e) {
@@ -276,7 +296,7 @@ async function fetchMatchedUsers(projectId) {
   });
 }
 
-// ======== 여기서 userName, userTechStack, userIntro 등도 표시하도록 수정 ========
+// 매칭된 유저 표시 (Card 스타일)
 function renderMatchedUsers(users) {
   const container = document.getElementById('matched-users-container');
   container.innerHTML = '';
@@ -286,46 +306,226 @@ function renderMatchedUsers(users) {
   }
 
   users.forEach(u => {
-    const div = document.createElement('div');
-    div.className = 'matched-user-item';
+    const card = document.createElement('div');
+    card.className = 'card mb-2';
 
-    // Lambda가 반환하는 필드: UserID, SimilarityScore, userName, userTechStack, userIntro
-    div.innerHTML = `
-      <p><strong>UserID:</strong> ${u.UserID}</p>
-      <p><strong>점수:</strong> ${u.SimilarityScore}</p>
-      <p><strong>이름:</strong> ${u.userName || ''}</p>
-      <p><strong>기술스택:</strong> ${u.userTechStack || ''}</p>
-      <p><strong>자기소개:</strong> ${u.userIntro || ''}</p>
+    const userTitle = `<strong>UserID:</strong> ${u.UserID || ''} / 점수: ${u.SimilarityScore?.toFixed(2) || ''}`;
+
+    const cardBody = `
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted">${userTitle}</h6>
+        <p><strong>이름:</strong> ${u.userName || ''}</p>
+        <p><strong>기술스택:</strong> ${u.userTechStack || ''}</p>
+        <p><strong>자기소개:</strong> ${u.userIntro || ''}</p>
+      </div>
     `;
-    container.appendChild(div);
+
+    card.innerHTML = cardBody;
+    container.appendChild(card);
   });
 }
-// ==============================================
 
-// 8) 프로젝트 수정 / 삭제 / removeParticipant (기존 로직)
+// 8) 프로젝트 수정/삭제
+async function deleteProject(projectId) {
+  if (!confirm('정말 프로젝트를 삭제하시겠습니까?')) return;
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      alert('로그인 필요');
+      return;
+    }
+    const resp = await fetch(`https://d2miwwhvzmngyp.cloudfront.net/prod/createproject/${projectId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!resp.ok) throw new Error('프로젝트 삭제 실패');
+    alert('프로젝트가 삭제되었습니다!');
+    fetchMyProjects();
+  } catch (e) {
+    console.error('프로젝트 삭제 에러:', e);
+    alert('프로젝트 삭제 중 오류');
+  }
+}
 
-// ... (deleteProject, openEditPopup, closeEditPopup, saveEditButton.onclick, removeParticipant, etc.)
+function openEditPopup(project) {
+  currentEditingProjectId = project.projectId;
+  document.getElementById('edit-projectName').value = project.projectName || '';
+  document.getElementById('edit-projectDescription').value = project.projectDescription || '';
+  document.getElementById('edit-techStack').value = project.techStack ? project.techStack.join(', ') : '';
+  document.getElementById('edit-projectType').value = project.projectType || 'Web Development';
+  document.getElementById('edit-maxTeamSize').value = project.maxTeamSize || 0;
+  document.getElementById('edit-project-popup').style.display = 'block';
+}
 
-// 9) "참여한 프로젝트" (기존 로직)
+function closeEditPopup() {
+  document.getElementById('edit-project-popup').style.display = 'none';
+  currentEditingProjectId = null;
+}
+document.getElementById('cancelEditButton').onclick = closeEditPopup;
+
+// 저장
+document.getElementById('saveEditButton').onclick = async function () {
+  if (!currentEditingProjectId) {
+    alert('수정할 프로젝트가 없습니다.');
+    return;
+  }
+
+  const updatedProject = {
+    projectId: currentEditingProjectId,
+    projectName: document.getElementById('edit-projectName').value,
+    projectDescription: document.getElementById('edit-projectDescription').value,
+    techStack: document.getElementById('edit-techStack').value.split(',').map(s => s.trim()),
+    projectType: document.getElementById('edit-projectType').value,
+    maxTeamSize: parseInt(document.getElementById('edit-maxTeamSize').value, 10)
+  };
+
+  try {
+    const idToken = localStorage.getItem('idToken');
+    if (!idToken) {
+      alert('로그인 필요 (idToken 없음)');
+      return;
+    }
+    const response = await fetch('https://d2miwwhvzmngyp.cloudfront.net/prod/updateProject', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`
+      },
+      body: JSON.stringify(updatedProject)
+    });
+    if (!response.ok) throw new Error('프로젝트 수정 실패');
+    alert('프로젝트가 성공적으로 수정되었습니다!');
+    closeEditPopup();
+    fetchMyProjects();
+  } catch (e) {
+    console.error('프로젝트 수정 에러:', e);
+    alert('프로젝트 수정 오류');
+  }
+};
+
+// 참가자 내쫓기
+async function removeParticipant(projectId, applicantId) {
+  if (!confirm('정말 참가자를 내쫓으시겠습니까?')) return;
+  try {
+    const idToken = localStorage.getItem('idToken');
+    if (!idToken) {
+      alert('로그인 필요');
+      return;
+    }
+    const resp = await fetch('https://d2miwwhvzmngyp.cloudfront.net/prod/removeParticipant', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`
+      },
+      body: JSON.stringify({ projectId, applicantId })
+    });
+    if (!resp.ok) throw new Error('참가자 삭제 실패');
+    alert('참가자를 내쫓았습니다!');
+    fetchMyProjects();
+    if (currentSelectedProjectId === projectId) {
+      showProjectDetail(projectId);
+    }
+  } catch (e) {
+    console.error(e);
+    alert('참가자 삭제 중 오류');
+  }
+}
+
+// "참여한 프로젝트"
 async function fetchMyProjects(userId) {
-  // ...
-  // renderMyProjects(...)
+  // ... 이미 구현된 fetch
+  // => renderMyProjects(...)
 }
 
 function renderMyProjects(projects) {
-  // ...
+  // 기존 로직 or Card UI 적용
+  const container = document.getElementById('participated-projects-container');
+  container.innerHTML = '';
+
+  if (!projects || projects.length === 0) {
+    container.innerHTML = '<p>참여한 프로젝트가 없습니다.</p>';
+    return;
+  }
+
+  projects.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card mb-2';
+
+    const createdTime = new Date(Number(p.timestamp)).toLocaleString() || '';
+    const headerHtml = `
+      <div class="card-header">
+        <h5 class="card-title mb-0">${p.projectName || '프로젝트 이름 없음'}</h5>
+        <small class="text-muted">방장: ${p.ownerName || '알 수 없음'}, 참여 시간: ${createdTime}</small>
+      </div>
+    `;
+    card.innerHTML = headerHtml + `
+      <div class="card-body">
+        <p><strong>프로젝트 ID:</strong> ${p.projectId}</p>
+      </div>
+    `;
+    container.appendChild(card);
+  });
 }
 
-// 10) 회원정보 폼 제출
+// 회원정보 폼
 function attachFormSubmitEvent() {
-  // ...
+  const form = document.getElementById('profile-form');
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const userProfile = {
+      UserID: userId,
+      name: document.getElementById('user-name').value,
+      email: document.getElementById('user-email').value,
+      user_techstack: document.getElementById('user-techstack').value,
+      user_project_preference: Array.from(document.querySelectorAll('#user-project-preference input[type="checkbox"]:checked')).map(c => c.value),
+      user_project_experience: document.getElementById('user-project-experience').value,
+      user_github: document.getElementById('user-github').value,
+      user_intro: document.getElementById('user-intro').value
+    };
+
+    try {
+      const idToken = localStorage.getItem('idToken');
+      if (!idToken) {
+        alert('로그인 필요(idToken 없음)');
+        return;
+      }
+      const response = await fetch('https://d2miwwhvzmngyp.cloudfront.net/prod/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`
+        },
+        body: JSON.stringify(userProfile)
+      });
+      if (!response.ok) throw new Error('프로필 저장 실패');
+      alert('프로필 저장 성공');
+      window.location.href = 'mypage.html';
+    } catch (e) {
+      console.error(e);
+      alert('프로필 저장 오류');
+    }
+  });
 }
 
-// 네비게이션
+// 네비게이션 로그인/로그아웃
 function updateNavBar() {
-  // ...
+  const cognitoUser = userPool.getCurrentUser();
+  const loginLogoutLink = document.getElementById('login-logout-link');
+  if (cognitoUser) {
+    loginLogoutLink.textContent = '로그아웃';
+    loginLogoutLink.href = '#';
+    loginLogoutLink.onclick = function () {
+      cognitoUser.signOut();
+      window.location.href = 'login.html';
+    };
+  } else {
+    loginLogoutLink.textContent = '로그인';
+    loginLogoutLink.href = 'login.html';
+    loginLogoutLink.onclick = null;
+  }
 }
 
 function connectWebSocket(userPool) {
-  // ...
+  // 기존 websocket.js 로직, 필요 시
 }
